@@ -25,7 +25,7 @@ public class RealTimeClock : MonoBehaviour
             // Result will look like:
             // Dec 07, 2025
             // 09:07 PM
-            string formatString = "MMM dd, yyyy\nhh:mm tt";
+            string formatString = "hh:mm tt\nMMM dd, yyyy";
 
             clockText.text = now.ToString(formatString);
             // ------------------------------------

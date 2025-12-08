@@ -40,11 +40,11 @@ public class SampleCubeCtrl : MonoBehaviour, IEventSystemHandler, IPointerEnterH
     public void OnPointerClick(PointerEventData eventData)
     {
         //RingManager.OpenRing();
-        ModifyRotation();
+       // ModifyRotation();
     }
-    public void ModifyRotation()
+   /* public void ModifyRotation()
     {
         m_rotDirection = !m_rotDirection;
 
-    }
+    }*/
 }
