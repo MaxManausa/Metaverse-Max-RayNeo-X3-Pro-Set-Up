@@ -25,7 +25,7 @@ public class CompassDisplay : MonoBehaviour
 
         if (maxWait < 1 || Input.location.status == LocationServiceStatus.Failed)
         {
-            compassText.text = "Compass Failed/Disabled";
+            compassText.text = "Compass Unavailable";
             yield break;
         }
 
