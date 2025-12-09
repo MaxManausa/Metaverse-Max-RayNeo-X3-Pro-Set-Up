@@ -8,6 +8,7 @@ public class SceneManagerButtons : MonoBehaviour
     // Start is called before the first frame update
     [SerializeField] GameObject sceneManagerObject;
     [SerializeField] GameObject head;
+    [SerializeField] GameObject laserBeamDot;
 
     [SerializeField] GameObject whole3DOFScreen;
     [SerializeField] GameObject hud0DOFScreen;
@@ -31,6 +32,7 @@ public class SceneManagerButtons : MonoBehaviour
         minimalistScreen.SetActive(false);
         whole3DOFScreen.SetActive(false);
         hud0DOFScreen.SetActive(true);
+        laserBeamDot.SetActive(false);
     }
 
     public void Go3DOF()
@@ -38,6 +40,7 @@ public class SceneManagerButtons : MonoBehaviour
         minimalistScreen.SetActive(false);
         hud0DOFScreen.SetActive(false);
         whole3DOFScreen.SetActive(true);
+        laserBeamDot.SetActive(true);
     }
 
     public void Go0and3DOF()
