@@ -22,6 +22,7 @@ public class TouchEvents : MonoBehaviour
         SimpleTouchForLite.Instance.OnSwipeLeft.AddListener(OnSwipeLeft);
         SimpleTouchForLite.Instance.OnSwipeRight.AddListener(OnSwipeRight);
 
+        SimpleTouchForLite.Instance.OnSimpleTap.AddListener(OnSimpleTap);
         SimpleTouchForLite.Instance.OnTripleTap.AddListener(OnTripleTap);
         SimpleTouchForLite.Instance.OnLongPress.AddListener(OnLongPress);
     }
@@ -35,6 +36,7 @@ public class TouchEvents : MonoBehaviour
         SimpleTouchForLite.Instance.OnSwipeLeft.RemoveListener(OnSwipeLeft);
         SimpleTouchForLite.Instance.OnSwipeRight.RemoveListener(OnSwipeRight);
 
+        SimpleTouchForLite.Instance.OnSimpleTap.RemoveListener(OnSimpleTap);
         SimpleTouchForLite.Instance.OnTripleTap.RemoveListener(OnTripleTap);
         SimpleTouchForLite.Instance.OnLongPress.RemoveListener(OnLongPress);
     }
@@ -104,6 +106,21 @@ public class TouchEvents : MonoBehaviour
             videoPlayerController.PlayNext();
             Debug.Log("Play Next Song");
         }
+    }
+
+    private void OnSimpleTap()
+    {
+        if (currentIndex == 1)
+        {
+            videoPlayerController.TogglePlayPause();
+            Debug.Log("Pause/Play Toggled");
+        }
+        Debug.Log("[MercuryX2]SimpleTap");
+    }
+
+    public void Example()
+    {
+        //example
     }
 
     private void OnTripleTap()
