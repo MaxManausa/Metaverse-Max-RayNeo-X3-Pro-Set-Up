@@ -1,6 +1,7 @@
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Video;
-using System.Collections.Generic;
 
 public class VideoPlaylistController : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class VideoPlaylistController : MonoBehaviour
     public VideoPlayer videoPlayer;
     public List<VideoClip> playlist = new List<VideoClip>();
     public int currentClipIndex = 0;
+    public TextMeshProUGUI songNameText;
 
     void Start()
     {
@@ -44,6 +46,16 @@ public class VideoPlaylistController : MonoBehaviour
             videoPlayer.clip = playlist[index];
             videoPlayer.Play();
             Debug.Log($"Now playing: **{playlist[index].name}** (Index: {index})");
+            UpdateSongNameText(playlist[index].name);
+        }
+    }
+
+    private void UpdateSongNameText(string clipName)
+    {
+        if (songNameText != null)
+        {
+            // VideoClip.name contains the filename without the path or extension (in Unity's asset pipeline)
+            songNameText.text = clipName;
         }
     }
 
@@ -110,6 +122,23 @@ public class VideoPlaylistController : MonoBehaviour
     public void Play()
     {
         videoPlayer.Play();
+    }
+
+    public void TogglePlayPause()
+    {
+        // Check if the video is currently playing (or preparing)
+        if (videoPlayer.isPlaying)
+        {
+            // If it is playing, pause it.
+            videoPlayer.Pause();
+            Debug.Log("Video Paused.");
+        }
+        else
+        {
+            // If it is paused (or stopped), start playing it.
+            videoPlayer.Play();
+            Debug.Log("Video Playing.");
+        }
     }
 
     public void OnDestroy()

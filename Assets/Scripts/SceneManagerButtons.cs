@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,15 +17,20 @@ public class SceneManagerButtons : MonoBehaviour
 
     public int zoomDistance;
     public int idealDistance;
+    [SerializeField] TextMeshProUGUI glassesModeText1;
+    [SerializeField] TextMeshProUGUI glassesModeText2;
 
     [SerializeField] Text text1;
     [SerializeField] Text text2;
     [SerializeField] Text text3;
     [SerializeField] Text text4;
 
+
+
     void Start()
     {
-       
+        Go3DOF();
+        Go0DOF();
     }
 
     public void Go0DOF()
@@ -33,6 +39,8 @@ public class SceneManagerButtons : MonoBehaviour
         whole3DOFScreen.SetActive(false);
         hud0DOFScreen.SetActive(true);
         laserBeamDot.SetActive(false);
+        glassesModeText1.text = "0DOF HUD";
+        glassesModeText2.text = "0DOF HUD";
     }
 
     public void Go3DOF()
@@ -41,6 +49,8 @@ public class SceneManagerButtons : MonoBehaviour
         hud0DOFScreen.SetActive(false);
         whole3DOFScreen.SetActive(true);
         laserBeamDot.SetActive(true);
+        glassesModeText1.text = "3DOF HUD";
+        glassesModeText2.text = "3DOF HUD";
     }
 
     public void Go0and3DOF()
@@ -48,6 +58,8 @@ public class SceneManagerButtons : MonoBehaviour
         minimalistScreen.SetActive(false);
         hud0DOFScreen.SetActive(true);
         whole3DOFScreen.SetActive(true);
+        glassesModeText1.text = "0DOF & 3DOF HUD";
+        glassesModeText2.text = "0DOF & 3DOF HUD";
     }
 
     public void minimalistScreenOnOff()
@@ -67,6 +79,7 @@ public class SceneManagerButtons : MonoBehaviour
             
     }
 
+    
 
     public void Zoom()
     {

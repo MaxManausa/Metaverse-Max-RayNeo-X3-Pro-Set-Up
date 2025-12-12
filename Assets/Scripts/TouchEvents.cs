@@ -6,6 +6,8 @@ public class TouchEvents : MonoBehaviour
 {
     // Changed individual SerializedFields to a list.
     // Populate this list in the Inspector by dragging and dropping your GameObjects.
+    [SerializeField] SceneManagerButtons sceneManagerButtons;
+    [SerializeField] VideoPlaylistController videoPlayerController;
     [SerializeField]
     private List<GameObject> displayObjects = new List<GameObject>();
 
@@ -88,17 +90,45 @@ public class TouchEvents : MonoBehaviour
 
     private void OnSwipeDown(Vector2 pos)
     {
-
+        if (currentIndex == 1)
+        {
+            videoPlayerController.GoBack();
+            Debug.Log("Play Previous Song");
+        }
     }
 
     private void OnSwipeUp(Vector2 pos)
     {
-
+        if (currentIndex == 1)
+        {
+            videoPlayerController.PlayNext();
+            Debug.Log("Play Next Song");
+        }
     }
 
     private void OnTripleTap()
     {
+        // 1. Deactivate the object that was visible before the triple tap.
+        // This is the object at the old currentIndex.
+        if (displayObjects.Count > 0 && displayObjects[currentIndex] != null)
+        {
+            displayObjects[currentIndex].SetActive(false);
+        }
 
+        // 2. Set the index to 0. This is the desired reset point.
+        currentIndex = 0;
+
+        // 3. Activate the new current object (the one at index 0).
+        if (displayObjects.Count > 0 && displayObjects[currentIndex] != null)
+        {
+            displayObjects[currentIndex].SetActive(true);
+        }
+
+        // 4. Call the Scene Manager action.
+        sceneManagerButtons.Go0DOF();
+
+        // Optional: Log the reset
+        Debug.Log($"Triple Tap: Resetting display to index {currentIndex}.");
     }
 
     private void OnLongPress()
