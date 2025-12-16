@@ -3,13 +3,14 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Controls a HUD element, mirroring the head/camera rotation onto a 3D gizmo 
-/// object and updating the numerical display of the X, Y, Z Euler angles.
+/// object (like a face-to-face mirror) and updating the numerical display 
+/// with the original, unmirrored rotation values.
 /// </summary>
-public class RotationHUDController_3D : MonoBehaviour
+public class RotationHUDController : MonoBehaviour
 {
     // --- Configuration ---
     [Header("Rotation Source")]
-    [Tooltip("The Transform (e.g., Camera/Head) to track. If null, data must be provided externally via SetExternalRotation.")]
+    [Tooltip("The Transform (e.g., Camera/Head) to track. If null, data must be provided externally.")]
     public Transform targetTransform;
 
     // --- 3D Gizmo Reference ---
@@ -35,45 +36,60 @@ public class RotationHUDController_3D : MonoBehaviour
             Debug.LogError("3D Gizmo Root Transform is required. Please assign it in the Inspector.");
             enabled = false;
         }
-        if (rotationXText == null || rotationYText == null || rotationZText == null)
-        {
-            Debug.LogError("Rotation Text UI references are required. Please assign them in the Inspector.");
-            // Script can still run for the 3D gizmo, but numerical display will fail.
-        }
     }
 
     void Update()
     {
-        Quaternion rotationToApply;
-        Vector3 eulerAnglesToDisplay;
+        Vector3 sourceEuler;
 
+        // 1. Determine the source rotation
         if (targetTransform != null)
         {
-            // MODE 1: Direct Tracking (Local Camera Rotation)
-            // Use localRotation (Quaternion) for smooth, gimbal-lock-free rotation application
-            rotationToApply = targetTransform.localRotation;
             // Use localEulerAngles for a consistent 0-360 degree display
-            eulerAnglesToDisplay = targetTransform.localEulerAngles;
+            sourceEuler = targetTransform.localEulerAngles;
         }
         else
         {
-            // MODE 2: External Data Tracking
-            rotationToApply = externalRotation;
-            eulerAnglesToDisplay = externalRotation.eulerAngles;
+            // Use externalRotation's Euler angles
+            sourceEuler = externalRotation.eulerAngles;
         }
 
-        // 1. Apply the full Quaternion rotation to the 3D gizmo object
-        // This makes the 3D object mirror the head's rotation in its local space.
-        gizmo3DRoot.localRotation = rotationToApply;
+        // 2. MIRROR THE ROTATION: Negate all three Euler angles for the 3D gizmo.
 
-        // 2. Update the numerical display
-        UpdateNumericalDisplay(eulerAnglesToDisplay);
+        // A. Convert the 0-360 range to a signed -180 to 180 range for reliable negation.
+        Vector3 signedSourceEuler = ConvertToSignedAngles(sourceEuler);
+
+        // B. Negate all three components (X, Y, and Z) for the mirror effect.
+        Vector3 invertedEuler = new Vector3(
+            -signedSourceEuler.x,
+            -signedSourceEuler.y,
+            -signedSourceEuler.z
+        );
+
+        // C. Apply the mirrored rotation to the 3D gizmo object
+        Quaternion mirroredRotation = Quaternion.Euler(invertedEuler);
+        gizmo3DRoot.localRotation = mirroredRotation;
+
+        // 3. Update the numerical display (using the ORIGINAL, unmirrored source angles)
+        UpdateNumericalDisplay(sourceEuler);
+    }
+
+    /// <summary>
+    /// Converts Euler angles from 0-360 range to a signed -180 to 180 range.
+    /// Necessary for reliable mathematical negation (mirroring).
+    /// </summary>
+    private Vector3 ConvertToSignedAngles(Vector3 euler)
+    {
+        // If angle > 180, subtract 360 to get a negative value
+        euler.x = (euler.x > 180f) ? euler.x - 360f : euler.x;
+        euler.y = (euler.y > 180f) ? euler.y - 360f : euler.y;
+        euler.z = (euler.z > 180f) ? euler.z - 360f : euler.z;
+        return euler;
     }
 
     /// <summary>
     /// Public method to feed new rotation data into the HUD from an external source (e.g., Network).
     /// </summary>
-    /// <param name="newRotation">The incoming Quaternion rotation data.</param>
     public void SetExternalRotation(Quaternion newRotation)
     {
         externalRotation = newRotation;
@@ -84,7 +100,7 @@ public class RotationHUDController_3D : MonoBehaviour
     /// </summary>
     private void UpdateNumericalDisplay(Vector3 rotation)
     {
-        // Only update if the references are assigned to prevent errors
+        // Only update if the references are assigned
         if (rotationXText != null)
             rotationXText.text = $"X: {rotation.x.ToString(FormatString)}°";
 
