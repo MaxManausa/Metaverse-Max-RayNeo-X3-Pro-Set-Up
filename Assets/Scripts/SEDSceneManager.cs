@@ -24,6 +24,8 @@ public class SEDSceneManager : MonoBehaviour
         HomeScreen.SetActive(false);
         GameUIScreen.SetActive(true);
         Game3DOFScene.SetActive(true);
+        gamePlaying = true;
+        gamePaused = false;
     }
 
     public void PauseGame()
