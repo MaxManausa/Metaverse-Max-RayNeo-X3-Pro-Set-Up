@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 
 public class ResetHeadTrack : MonoBehaviour
 {
-    [SerializeField] private SceneManagerButtons sceneManager;
 
     // Start is called before the first frame update
     void Start()
@@ -34,11 +33,6 @@ public class ResetHeadTrack : MonoBehaviour
     private void OnReset()
     {
         HeadTrackedPoseDriver.ResetQuaternion();
-        sceneManager.Go3DOF();
     }
 
-    void Update()
-    {
-
-    }
 }
