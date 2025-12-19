@@ -2,9 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Controls a HUD element, mirroring the head/camera rotation onto a 3D gizmo 
-/// object (like a face-to-face mirror) and updating the numerical display 
-/// with the original, unmirrored rotation values.
+/// Controls a HUD element, mirroring X and Y rotation for a mirror effect,
+/// but keeping Z rotation normal.
 /// </summary>
 public class RotationHUDController : MonoBehaviour
 {
@@ -30,7 +29,6 @@ public class RotationHUDController : MonoBehaviour
 
     void Start()
     {
-        // Check for required components
         if (gizmo3DRoot == null)
         {
             Debug.LogError("3D Gizmo Root Transform is required. Please assign it in the Inspector.");
@@ -45,62 +43,48 @@ public class RotationHUDController : MonoBehaviour
         // 1. Determine the source rotation
         if (targetTransform != null)
         {
-            // Use localEulerAngles for a consistent 0-360 degree display
             sourceEuler = targetTransform.localEulerAngles;
         }
         else
         {
-            // Use externalRotation's Euler angles
             sourceEuler = externalRotation.eulerAngles;
         }
 
-        // 2. MIRROR THE ROTATION: Negate all three Euler angles for the 3D gizmo.
+        // 2. MIRROR THE ROTATION: Modified to flip only X and Y.
 
-        // A. Convert the 0-360 range to a signed -180 to 180 range for reliable negation.
+        // A. Convert the 0-360 range to signed -180 to 180 range.
         Vector3 signedSourceEuler = ConvertToSignedAngles(sourceEuler);
 
-        // B. Negate all three components (X, Y, and Z) for the mirror effect.
+        // B. Negate X and Y for the mirror effect, but keep Z positive (normal).
         Vector3 invertedEuler = new Vector3(
             -signedSourceEuler.x,
             -signedSourceEuler.y,
-            -signedSourceEuler.z
+            signedSourceEuler.z // Removed the minus sign here
         );
 
-        // C. Apply the mirrored rotation to the 3D gizmo object
+        // C. Apply the rotation to the 3D gizmo object
         Quaternion mirroredRotation = Quaternion.Euler(invertedEuler);
         gizmo3DRoot.localRotation = mirroredRotation;
 
-        // 3. Update the numerical display (using the ORIGINAL, unmirrored source angles)
+        // 3. Update numerical display (using the ORIGINAL, unmirrored source angles)
         UpdateNumericalDisplay(sourceEuler);
     }
 
-    /// <summary>
-    /// Converts Euler angles from 0-360 range to a signed -180 to 180 range.
-    /// Necessary for reliable mathematical negation (mirroring).
-    /// </summary>
     private Vector3 ConvertToSignedAngles(Vector3 euler)
     {
-        // If angle > 180, subtract 360 to get a negative value
         euler.x = (euler.x > 180f) ? euler.x - 360f : euler.x;
         euler.y = (euler.y > 180f) ? euler.y - 360f : euler.y;
         euler.z = (euler.z > 180f) ? euler.z - 360f : euler.z;
         return euler;
     }
 
-    /// <summary>
-    /// Public method to feed new rotation data into the HUD from an external source (e.g., Network).
-    /// </summary>
     public void SetExternalRotation(Quaternion newRotation)
     {
         externalRotation = newRotation;
     }
 
-    /// <summary>
-    /// Updates the text elements with the current rotation values (X, Y, Z).
-    /// </summary>
     private void UpdateNumericalDisplay(Vector3 rotation)
     {
-        // Only update if the references are assigned
         if (rotationXText != null)
             rotationXText.text = $"X: {rotation.x.ToString(FormatString)}°";
 

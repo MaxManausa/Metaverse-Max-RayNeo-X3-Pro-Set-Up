@@ -102,8 +102,13 @@ public class SceneManagerButtons : MonoBehaviour
     {
         text1.text = "Feature";
         text2.text = "Specification";
-        text3.text = "Processor/Chipset\r\nOptical Engine\r\nDisplay Type\r\nDisplay Brightness\r\nField of View (FOV)\r\nRAM\r\nStorage (ROM)\r\nBattery Capacity\r\nWeight\r\nFrame Material\r\nSpatial Sensing\r\nCamera\r\nConnectivity\r\nIP Rating\r\nSoftware ";
-        text4.text = "Qualcomm Snapdragon AR1 Generation 1 platform\r\nSelf-developed Micro-LED Light Engine with Waveguide Technology\r\nBinocular Full-Color Display\r\nUp to 2,500 nits (peak brightness)\r\nApproximately 25–30 degrees\r\n4GB\r\n32GB\r\n245mAh\r\nApproximately 76g (less than 3 ounces)\r\nAerospace-grade magnesium alloy frame and titanium alloy hinge\r\nRayNeo Imaging Plus system (6DOF tracking, scene detection, gesture recognition)\r\nDual-camera system (estimated 12MP for photography/video)\r\nEnhanced Connectivity (Seamless link with other devices and cloud)\r\nIPx2 (Water-resistant)\r\nRayNeoOS 2.0 with integrated Google Gemini AI ";
+        text3.text = "Processor/Chipset\r\nOptical Engine\r\nDisplay Type\r\nDisplay Brightness\r\nField of View (FOV)\r\nRAM\r\nStorage" +
+            " (ROM)\r\nBattery Capacity\r\nWeight\r\nFrame Material\r\nSpatial Sensing\r\nCamera\r\nConnectivity\r\nIP Rating\r\nSoftware ";
+        text4.text = "Qualcomm Snapdragon AR1 Generation 1 platform\r\nSelf-developed Micro-LED Light Engine with Waveguide Technology\r\n Binocular" +
+            "Full-Color Display\r\nUp to 2,500 nits (peak brightness)\r\nApproximately 30 degrees\r\n4GB\r\n32GB\r\n245mAh\r\nApproximately 76g " + 
+            "(less than 3 ounces)\r\nAerospace-grade magnesium alloy frame and titanium alloy hinge\r\nRayNeo Imaging Plus system (6DOF tracking, scene" +
+            " detection, gesture recognition)\r\nDual-camera system (estimated 12MP for photography/video)\r\nEnhanced Connectivity (Seamless link with other " +
+            "devices and cloud)\r\nIPx2 (Water-resistant)\r\nRayNeoAIOS with integrated Google Gemini AI ";
     }
 
     public void AboutThisApp()
