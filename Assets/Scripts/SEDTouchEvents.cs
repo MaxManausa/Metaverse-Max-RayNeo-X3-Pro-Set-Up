@@ -85,6 +85,12 @@ public class SEDTouchEvents : MonoBehaviour
 
     private void OnTripleTap()
     {
+        if (sceneManager.gamePlaying == false && sceneManager.gamePaused == false)
+        {
+            Application.Quit();
+            return;
+        }
+
         sceneManager.GoHome();
         Debug.Log("Triple Tapped");
     }

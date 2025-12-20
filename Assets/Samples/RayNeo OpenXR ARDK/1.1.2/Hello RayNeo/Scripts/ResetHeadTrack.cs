@@ -30,7 +30,7 @@ public class ResetHeadTrack : MonoBehaviour
 
 
     }
-    private void OnReset()
+    public void OnReset()
     {
         HeadTrackedPoseDriver.ResetQuaternion();
     }

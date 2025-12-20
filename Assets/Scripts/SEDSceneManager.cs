@@ -5,6 +5,7 @@ using UnityEngine;
 public class SEDSceneManager : MonoBehaviour
 {
     [SerializeField] private ScoreManager scoreManager;
+    [SerializeField] private ResetHeadTrack resetHeadTrack;
 
     [SerializeField] private GameObject HomeScreen;
     [SerializeField] private GameObject GameUIScreen;
@@ -27,6 +28,7 @@ public class SEDSceneManager : MonoBehaviour
     public void StartGame()
     {
         HomeScreen.SetActive(false);
+        resetHeadTrack.OnReset();
         GameUIScreen.SetActive(true);
         Game3DOFScene.SetActive(true);
         PauseScreen.SetActive(false); // Ensure pause is off

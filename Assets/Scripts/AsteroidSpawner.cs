@@ -14,7 +14,7 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] private float maxSpeed = 7f;
 
     // The list of possible spawn delays you requested
-    private float[] possibleIntervals = { 0.5f, 0.75f, 1f, 1.5f, 2f, 3f, 4f };
+    private float[] possibleIntervals = { 0.25f, 0.5f, 0.75f, 1f, 1.5f, 2f, 3f, 4f };
     private Coroutine spawnCoroutine;
 
     public void StartSpawning()

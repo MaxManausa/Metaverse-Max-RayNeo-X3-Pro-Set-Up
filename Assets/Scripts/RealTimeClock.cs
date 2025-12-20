@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Collections;
@@ -20,17 +19,15 @@ public class RealTimeClock : MonoBehaviour
         {
             DateTime now = DateTime.Now;
 
-            // --- Change the format string here ---
-            // The "\n" character forces a new line in the text display.
-            // Result will look like:
-            // Dec 07, 2025
-            // 09:07 PM
-            string formatString = "hh:mm tt\nMMM dd, yyyy";
+            // ddMMM: Day and 3-letter Month
+            // yy: Short year
+            // .HH:mm: Period separator and 24-hour time
+            string timestamp = now.ToString("ddMMMyy.HH:mm").ToUpper();
 
-            clockText.text = now.ToString(formatString);
-            // ------------------------------------
+            clockText.text = timestamp;
 
-            yield return new WaitForSeconds(0.2f);
+            // Wait for 1 second to stay precise to the minute
+            yield return new WaitForSeconds(1.0f);
         }
     }
 }

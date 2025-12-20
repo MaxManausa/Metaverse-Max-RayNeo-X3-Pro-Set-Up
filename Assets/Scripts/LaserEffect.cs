@@ -3,18 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
+[RequireComponent(typeof(AudioSource))] // Ensures an AudioSource is attached
 public class LaserEffect : MonoBehaviour
 {
     private LineRenderer line;
-    [SerializeField] private Material[] laserMaterials; // Assign your materials here in the Inspector
+    private AudioSource audioSource;
+
+    [SerializeField] private Material[] laserMaterials;
+    [SerializeField] private AudioClip fireSound; // Assign your sound effect here
     private int currentMaterialIndex = 0;
 
     void Awake()
     {
         line = GetComponent<LineRenderer>();
+        audioSource = GetComponent<AudioSource>();
+
         line.enabled = false;
 
-        // Initialize with the first material if the list isn't empty
         if (laserMaterials.Length > 0)
         {
             line.material = laserMaterials[currentMaterialIndex];
@@ -25,6 +30,12 @@ public class LaserEffect : MonoBehaviour
     {
         StopAllCoroutines();
         StartCoroutine(LaserRoutine(startPoint, endPoint, duration));
+
+        // Play the sound effect
+        if (fireSound != null)
+        {
+            audioSource.PlayOneShot(fireSound);
+        }
     }
 
     private IEnumerator LaserRoutine(Vector3 start, Vector3 end, float time)
@@ -41,8 +52,6 @@ public class LaserEffect : MonoBehaviour
     public void NextColor()
     {
         if (laserMaterials.Length == 0) return;
-
-        // Increment index and wrap around using Modulo
         currentMaterialIndex = (currentMaterialIndex + 1) % laserMaterials.Length;
         UpdateLaserMaterial();
     }
@@ -50,13 +59,8 @@ public class LaserEffect : MonoBehaviour
     public void PreviousColor()
     {
         if (laserMaterials.Length == 0) return;
-
-        // Decrement index and wrap to end if below zero
         currentMaterialIndex--;
-        if (currentMaterialIndex < 0)
-        {
-            currentMaterialIndex = laserMaterials.Length - 1;
-        }
+        if (currentMaterialIndex < 0) currentMaterialIndex = laserMaterials.Length - 1;
         UpdateLaserMaterial();
     }
 
