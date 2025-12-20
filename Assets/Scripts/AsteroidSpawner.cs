@@ -10,34 +10,45 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] private Transform[] spawnPoints;
 
     [Header("Settings")]
-    [SerializeField] private float spawnInterval = 2f;
     [SerializeField] private float minSpeed = 3f;
     [SerializeField] private float maxSpeed = 7f;
 
-    // --- Control Methods ---
+    // The list of possible spawn delays you requested
+    private float[] possibleIntervals = { 0.5f, 0.75f, 1f, 1.5f, 2f, 3f, 4f };
+    private Coroutine spawnCoroutine;
 
-    /// <summary>
-    /// Starts the spawning loop.
-    /// </summary>
     public void StartSpawning()
     {
-        // First, stop any existing loop to prevent "double spawning"
         StopSpawning();
-
-        InvokeRepeating(nameof(SpawnAsteroid), 1f, spawnInterval);
-        Debug.Log("Asteroid Spawning Started");
+        spawnCoroutine = StartCoroutine(SpawnLoop());
+        Debug.Log("Dynamic Asteroid Spawning Started");
     }
 
-    /// <summary>
-    /// Stops the spawning loop.
-    /// </summary>
     public void StopSpawning()
     {
-        CancelInvoke(nameof(SpawnAsteroid));
+        if (spawnCoroutine != null)
+        {
+            StopCoroutine(spawnCoroutine);
+            spawnCoroutine = null;
+        }
         Debug.Log("Asteroid Spawning Stopped");
     }
 
-    // --- Internal Logic ---
+    private IEnumerator SpawnLoop()
+    {
+        // Initial wait before first spawn
+        yield return new WaitForSeconds(1f);
+
+        while (true)
+        {
+            SpawnAsteroid();
+
+            // Pick a random interval from your list
+            float nextDelay = possibleIntervals[Random.Range(0, possibleIntervals.Length)];
+
+            yield return new WaitForSeconds(nextDelay);
+        }
+    }
 
     void SpawnAsteroid()
     {
