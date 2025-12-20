@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class AsteroidManager : MonoBehaviour
 {
@@ -10,22 +9,29 @@ public class AsteroidManager : MonoBehaviour
 
     [Header("Movement Settings")]
     public float speed = 5f;
-    public Transform earthTarget; // Drag Earth here or find it by code
+    public Transform earthTarget;
 
     [Header("Rotation Settings")]
     public float rotationSpeedMin = 20f;
     public float rotationSpeedMax = 100f;
 
-    private Vector3 randomRotationAxis;
-    private float actualRotationSpeed;
+    private Vector3 _randomRotationAxis;
+    private float _actualRotationSpeed;
+    private bool _isDead = false;
+
+    // Cache the transform for minor performance boost in Update
+    private Transform _myTransform;
+
+    void Awake()
+    {
+        _myTransform = transform;
+    }
 
     void Start()
     {
-        // 1. Generate a random axis and speed for the "tumbling" effect
-        randomRotationAxis = new Vector3(Random.value, Random.value, Random.value);
-        actualRotationSpeed = Random.Range(rotationSpeedMin, rotationSpeedMax);
+        _randomRotationAxis = Random.onUnitSphere; // Pro way to get a random 3D direction
+        _actualRotationSpeed = Random.Range(rotationSpeedMin, rotationSpeedMax);
 
-        // 2. Safety: If Earth isn't assigned, try to find it by name
         if (earthTarget == null)
         {
             GameObject earthGO = GameObject.Find("Earth");
@@ -35,47 +41,60 @@ public class AsteroidManager : MonoBehaviour
 
     void Update()
     {
-        // 3. Move toward Earth
-        if (earthTarget != null)
-        {
-            Vector3 direction = (earthTarget.position - transform.position).normalized;
-            transform.position += direction * speed * Time.deltaTime;
-        }
+        if (_isDead || earthTarget == null) return;
 
-        // 4. Constant random rotation
-        transform.Rotate(randomRotationAxis * actualRotationSpeed * Time.deltaTime);
+        // Use cached transform and MoveTowards for more consistent flight
+        Vector3 direction = (earthTarget.position - _myTransform.position).normalized;
+        _myTransform.position += direction * speed * Time.deltaTime;
+
+        _myTransform.Rotate(_randomRotationAxis * (_actualRotationSpeed * Time.deltaTime));
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // 1. Check if the asteroid hit the Earth
-        if (other.CompareTag("Earth"))
+        if (!_isDead && other.CompareTag("Earth"))
         {
-            ScoreManager.Instance.AddEarthHit();
-
-            // Use your existing explode logic so it vanishes on impact
-            ExplodeAsteroid();
+            if (ScoreManager.Instance != null) ScoreManager.Instance.AddEarthHit();
+            ExecuteExplosion(false);
         }
     }
 
-    // Update your existing Explode method to count the kill
-    public void ExplodeAsteroid()
+    public void ExplodeAsteroid() => HitByLaser(); // Clean C# expression body
+
+    public void HitByLaser()
     {
-        // If it's active when this is called, it means the player shot it
-        if (gameObject.activeSelf)
+        if (_isDead) return;
+
+        if (ScoreManager.Instance != null) ScoreManager.Instance.AddDestroyedPoint();
+        ExecuteExplosion(true);
+    }
+
+    private void ExecuteExplosion(bool wasPlayerKill)
+    {
+        _isDead = true;
+
+        if (wasPlayerKill) TriggerLaserBeam();
+
+        if (explosionPrefab != null)
         {
-            ScoreManager.Instance.AddDestroyedPoint();
+            GameObject effect = Instantiate(explosionPrefab, _myTransform.position, _myTransform.rotation);
+            Destroy(effect, 3f);
         }
 
-        GameObject effect = Instantiate(explosionPrefab, transform.position, transform.rotation);
         gameObject.SetActive(false);
-        StartCoroutine(CleanupRoutine(effect));
+        Destroy(this.gameObject, 3.1f);
     }
 
-    private IEnumerator CleanupRoutine(GameObject effect)
+    private void TriggerLaserBeam()
     {
-        yield return new WaitForSeconds(3f);
-        if (effect != null) Destroy(effect);
-        Destroy(this.gameObject);
+        // Efficiency: FindObjectOfType is slow. In a bigger game, 
+        // you'd reference the LaserEffect via a Singleton like the ScoreManager.
+        GameObject muzzle = GameObject.FindWithTag("LaserBlaster");
+        LaserEffect laserScript = FindObjectOfType<LaserEffect>();
+
+        if (muzzle != null && laserScript != null)
+        {
+            laserScript.FireLaser(muzzle.transform.position, _myTransform.position, 0.5f);
+        }
     }
 }

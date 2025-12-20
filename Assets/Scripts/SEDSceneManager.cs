@@ -18,67 +18,73 @@ public class SEDSceneManager : MonoBehaviour
     public bool gamePlaying = false;
     public bool gamePaused = false;
 
-    // Start is called before the first frame update
     void Start()
     {
-        HomeScreen.SetActive(true);
-        GameUIScreen.SetActive(false);
-        Game3DOFScene.SetActive(false);
-        gamePlaying = false;
-        gamePaused = false;
-        laserPointer.SetActive(false);
-        scoreManager.ResetVisuals();
+        Time.timeScale = 1; // Ensure game isn't frozen on load
+        GoHome(); // Re-use GoHome logic to set initial state correctly
     }
-
 
     public void StartGame()
     {
         HomeScreen.SetActive(false);
         GameUIScreen.SetActive(true);
         Game3DOFScene.SetActive(true);
+        PauseScreen.SetActive(false); // Ensure pause is off
+
         gamePlaying = true;
         gamePaused = false;
         laserPointer.SetActive(true);
+
         ClearAllUAPs();
         asteroidSpawner.StartSpawning();
         scoreManager.ResetVisuals();
+
+        Time.timeScale = 1; // Unfreeze world
     }
 
     public void PauseGame()
     {
-        if (!HomeScreen.activeInHierarchy && GameUIScreen.activeInHierarchy && Game3DOFScene.activeInHierarchy)
+        if (gamePlaying && !gamePaused)
         {
             gamePaused = true;
             gamePlaying = false;
+
             laserPointer.SetActive(false);
             PauseScreen.SetActive(true);
-            //game scene and game ui screen need to be paused
+
             asteroidSpawner.StopSpawning();
+            Time.timeScale = 0; // Freeze asteroids and physics
         }
     }
 
     public void ContinueGame()
     {
-        if(PauseScreen.activeInHierarchy)
+        if (gamePaused)
         {
             gamePaused = false;
             gamePlaying = true;
+
             laserPointer.SetActive(true);
             PauseScreen.SetActive(false);
-            //game scene and ui screen unpaused
+
             asteroidSpawner.StartSpawning();
+            Time.timeScale = 1; // Resume asteroids and physics
         }
     }
 
-    public void GoHome ()
+    public void GoHome()
     {
+        Time.timeScale = 1; // Reset time so menu isn't frozen
+
         HomeScreen.SetActive(true);
         GameUIScreen.SetActive(false);
         Game3DOFScene.SetActive(false);
         PauseScreen.SetActive(false);
+
         gamePaused = false;
         gamePlaying = false;
         laserPointer.SetActive(false);
+
         asteroidSpawner.StopSpawning();
         ClearAllUAPs();
     }
@@ -91,6 +97,4 @@ public class SEDSceneManager : MonoBehaviour
             Destroy(uap);
         }
     }
-
-
 }
