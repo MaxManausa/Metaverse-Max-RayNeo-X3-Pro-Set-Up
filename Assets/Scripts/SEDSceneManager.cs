@@ -4,12 +4,16 @@ using UnityEngine;
 
 public class SEDSceneManager : MonoBehaviour
 {
+    [SerializeField] private ScoreManager scoreManager;
+
     [SerializeField] private GameObject HomeScreen;
     [SerializeField] private GameObject GameUIScreen;
     [SerializeField] private GameObject Game3DOFScene;
     [SerializeField] private GameObject PauseScreen;
 
     [SerializeField] private GameObject laserPointer;
+
+    [SerializeField] private AsteroidSpawner asteroidSpawner;
 
     public bool gamePlaying = false;
     public bool gamePaused = false;
@@ -23,6 +27,7 @@ public class SEDSceneManager : MonoBehaviour
         gamePlaying = false;
         gamePaused = false;
         laserPointer.SetActive(false);
+        scoreManager.ResetVisuals();
     }
 
 
@@ -34,6 +39,9 @@ public class SEDSceneManager : MonoBehaviour
         gamePlaying = true;
         gamePaused = false;
         laserPointer.SetActive(true);
+        ClearAllUAPs();
+        asteroidSpawner.StartSpawning();
+        scoreManager.ResetVisuals();
     }
 
     public void PauseGame()
@@ -45,6 +53,7 @@ public class SEDSceneManager : MonoBehaviour
             laserPointer.SetActive(false);
             PauseScreen.SetActive(true);
             //game scene and game ui screen need to be paused
+            asteroidSpawner.StopSpawning();
         }
     }
 
@@ -57,6 +66,7 @@ public class SEDSceneManager : MonoBehaviour
             laserPointer.SetActive(true);
             PauseScreen.SetActive(false);
             //game scene and ui screen unpaused
+            asteroidSpawner.StartSpawning();
         }
     }
 
@@ -69,7 +79,18 @@ public class SEDSceneManager : MonoBehaviour
         gamePaused = false;
         gamePlaying = false;
         laserPointer.SetActive(false);
+        asteroidSpawner.StopSpawning();
+        ClearAllUAPs();
     }
 
-    
+    public void ClearAllUAPs()
+    {
+        GameObject[] uaps = GameObject.FindGameObjectsWithTag("UAP");
+        foreach (GameObject uap in uaps)
+        {
+            Destroy(uap);
+        }
+    }
+
+
 }

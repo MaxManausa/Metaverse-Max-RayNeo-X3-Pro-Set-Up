@@ -24,7 +24,8 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
-        UpdateVisuals();
+       UpdateVisuals();
+
     }
 
     public void AddDestroyedPoint()
@@ -53,5 +54,13 @@ public class ScoreManager : MonoBehaviour
             // Keeping your percentage logic
             earthHitsCountText.text = "Earth Damage: " + (earthHits * 10) + "%";
         }
+    }
+
+    public void ResetVisuals()
+    {
+        asteroidsDestroyed = 0;
+        destroyedCountText.text = "Asteroids Destroyed: " + asteroidsDestroyed;
+        earthHits = 0;  
+        earthHitsCountText.text = "Earth Damage: " + earthHits + "%";
     }
 }
