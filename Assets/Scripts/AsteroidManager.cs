@@ -94,7 +94,7 @@ public class AsteroidManager : MonoBehaviour
 
         if (muzzle != null && laserScript != null)
         {
-            laserScript.FireLaser(muzzle.transform.position, _myTransform.position, 0.5f);
+            laserScript.FireLaser(muzzle.transform.position, _myTransform.position, 0.2f);
         }
     }
 }
