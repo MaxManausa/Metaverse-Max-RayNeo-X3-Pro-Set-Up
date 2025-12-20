@@ -5,6 +5,7 @@ using UnityEngine;
 public class SEDTouchEvents : MonoBehaviour
 {
     [SerializeField] private SEDSceneManager sceneManager;
+    [SerializeField] private LaserEffect laserColor;
  
     // Start is called before the first frame update
     void Start()
@@ -40,6 +41,7 @@ public class SEDTouchEvents : MonoBehaviour
     private void OnSwipeRight(Vector2 pos)
     {
         Debug.Log("Moved Right.");
+        laserColor.NextColor();
     }
 
     /// <summary>
@@ -48,6 +50,7 @@ public class SEDTouchEvents : MonoBehaviour
     private void OnSwipeLeft(Vector2 pos)
     {
         Debug.Log("Moved Left.");
+        laserColor.PreviousColor();
     }
 
     private void OnSwipeDown(Vector2 pos)
