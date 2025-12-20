@@ -9,13 +9,20 @@ public class SEDSceneManager : MonoBehaviour
     [SerializeField] private GameObject Game3DOFScene;
     [SerializeField] private GameObject PauseScreen;
 
+    [SerializeField] private GameObject laserPointer;
+
     public bool gamePlaying = false;
     public bool gamePaused = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        HomeScreen.SetActive(true);
+        GameUIScreen.SetActive(false);
+        Game3DOFScene.SetActive(false);
+        gamePlaying = false;
+        gamePaused = false;
+        laserPointer.SetActive(false);
     }
 
 
@@ -26,6 +33,7 @@ public class SEDSceneManager : MonoBehaviour
         Game3DOFScene.SetActive(true);
         gamePlaying = true;
         gamePaused = false;
+        laserPointer.SetActive(true);
     }
 
     public void PauseGame()
@@ -34,6 +42,7 @@ public class SEDSceneManager : MonoBehaviour
         {
             gamePaused = true;
             gamePlaying = false;
+            laserPointer.SetActive(false);
             PauseScreen.SetActive(true);
             //game scene and game ui screen need to be paused
         }
@@ -45,6 +54,7 @@ public class SEDSceneManager : MonoBehaviour
         {
             gamePaused = false;
             gamePlaying = true;
+            laserPointer.SetActive(true);
             PauseScreen.SetActive(false);
             //game scene and ui screen unpaused
         }
@@ -58,6 +68,7 @@ public class SEDSceneManager : MonoBehaviour
         PauseScreen.SetActive(false);
         gamePaused = false;
         gamePlaying = false;
+        laserPointer.SetActive(false);
     }
 
     
