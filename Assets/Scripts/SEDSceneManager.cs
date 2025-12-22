@@ -2,36 +2,54 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+ * ******************************************************************************************
+ * HUGE NOTE: THIS IS A JOKE SCRIPT THAT WILL FULL FUCK UP THE VIEW OF THE EARTH 
+ * AND COULD MAYBE BE USED AS PSYCHOLOGICAL WARFARE FROM ALIENS.
+ * ******************************************************************************************
+ */
+
 public class SEDSceneManager : MonoBehaviour
 {
+    [Header("Managers")]
     [SerializeField] private ScoreManager scoreManager;
     [SerializeField] private ResetHeadTrack resetHeadTrack;
+    [SerializeField] private AsteroidSpawner asteroidSpawner;
 
+    [Header("UI Screens")]
     [SerializeField] private GameObject HomeScreen;
     [SerializeField] private GameObject GameUIScreen;
     [SerializeField] private GameObject Game3DOFScene;
     [SerializeField] private GameObject PauseScreen;
+    [SerializeField] private GameObject FailScreen;
+    [SerializeField] private GameObject WonScreen;
 
+    [Header("Tools")]
     [SerializeField] private GameObject laserPointer;
 
-    [SerializeField] private AsteroidSpawner asteroidSpawner;
+    private GameObject[] allScreens;
 
-    public bool gamePlaying = false;
-    public bool gamePaused = false;
+    [HideInInspector] public bool gamePlaying = false;
+    [HideInInspector] public bool gamePaused = false;
+
+    void Awake()
+    {
+        // Cache all screens into an array for high-speed UI switching
+        allScreens = new GameObject[] { HomeScreen, GameUIScreen, PauseScreen, FailScreen, WonScreen };
+    }
 
     void Start()
     {
-        Time.timeScale = 1; // Ensure game isn't frozen on load
-        GoHome(); // Re-use GoHome logic to set initial state correctly
+        Time.timeScale = 1;
+        GoHome();
     }
 
     public void StartGame()
     {
-        HomeScreen.SetActive(false);
-        resetHeadTrack.OnReset();
-        GameUIScreen.SetActive(true);
+        ToggleUI(GameUIScreen); // Automatically hides all others including Fail/Won
+
         Game3DOFScene.SetActive(true);
-        PauseScreen.SetActive(false); // Ensure pause is off
+        resetHeadTrack.OnReset();
 
         gamePlaying = true;
         gamePaused = false;
@@ -41,47 +59,69 @@ public class SEDSceneManager : MonoBehaviour
         asteroidSpawner.StartSpawning();
         scoreManager.ResetVisuals();
 
-        Time.timeScale = 1; // Unfreeze world
+        Time.timeScale = 1;
     }
 
     public void PauseGame()
     {
-        if (gamePlaying && !gamePaused)
-        {
-            gamePaused = true;
-            gamePlaying = false;
+        if (!gamePlaying || gamePaused) return;
 
-            laserPointer.SetActive(false);
-            PauseScreen.SetActive(true);
+        gamePaused = true;
+        gamePlaying = false;
 
-            asteroidSpawner.StopSpawning();
-            Time.timeScale = 0; // Freeze asteroids and physics
-        }
+        ToggleUI(PauseScreen);
+        laserPointer.SetActive(false);
+
+        asteroidSpawner.StopSpawning();
+        Time.timeScale = 0;
     }
 
     public void ContinueGame()
     {
-        if (gamePaused)
-        {
-            gamePaused = false;
-            gamePlaying = true;
+        if (!gamePaused) return;
 
-            laserPointer.SetActive(true);
-            PauseScreen.SetActive(false);
+        gamePaused = false;
+        gamePlaying = true;
 
-            asteroidSpawner.StartSpawning();
-            Time.timeScale = 1; // Resume asteroids and physics
-        }
+        ToggleUI(GameUIScreen);
+        laserPointer.SetActive(true);
+
+        asteroidSpawner.StartSpawning();
+        Time.timeScale = 1;
+    }
+
+    public void FailGame()
+    {
+        Game3DOFScene.SetActive(false);
+        ClearAllUAPs();
+        SetGameOverState(FailScreen);
+    }
+
+    public void WinGame()
+    {
+        Game3DOFScene.SetActive(false);
+        ClearAllUAPs(); // Specific requirement for Win
+        SetGameOverState(WonScreen);
+    }
+
+    private void SetGameOverState(GameObject targetScreen)
+    {
+        gamePlaying = false;
+        gamePaused = false;
+
+        ToggleUI(targetScreen);
+        laserPointer.SetActive(true);
+
+        asteroidSpawner.StopSpawning();
+        Time.timeScale = 0;
     }
 
     public void GoHome()
     {
-        Time.timeScale = 1; // Reset time so menu isn't frozen
+        Time.timeScale = 1;
 
-        HomeScreen.SetActive(true);
-        GameUIScreen.SetActive(false);
+        ToggleUI(HomeScreen);
         Game3DOFScene.SetActive(false);
-        PauseScreen.SetActive(false);
 
         gamePaused = false;
         gamePlaying = false;
@@ -91,12 +131,24 @@ public class SEDSceneManager : MonoBehaviour
         ClearAllUAPs();
     }
 
+    /// <summary>
+    /// Optimized UI switcher: Disables all screens and enables only the target.
+    /// </summary>
+    private void ToggleUI(GameObject activeScreen)
+    {
+        foreach (GameObject screen in allScreens)
+        {
+            if (screen != null)
+                screen.SetActive(screen == activeScreen);
+        }
+    }
+
     public void ClearAllUAPs()
     {
         GameObject[] uaps = GameObject.FindGameObjectsWithTag("UAP");
-        foreach (GameObject uap in uaps)
+        for (int i = 0; i < uaps.Length; i++)
         {
-            Destroy(uap);
+            Destroy(uaps[i]);
         }
     }
 }

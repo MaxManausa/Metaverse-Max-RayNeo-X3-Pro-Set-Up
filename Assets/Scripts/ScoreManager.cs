@@ -1,20 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro; // Changed from UnityEngine.UI to TMPro
+using TMPro;
 
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance;
 
-    [Header("Statistics")]
-    public int asteroidsDestroyed = 0;
-    public int earthHits = 0;
-
-    [Header("UI Text References")]
-    // Changed type from Text to TextMeshProUGUI
+    [Header("References")]
+    [SerializeField] private SEDSceneManager sceneManager;
     [SerializeField] private TextMeshProUGUI destroyedCountText;
     [SerializeField] private TextMeshProUGUI earthHitsCountText;
+
+    [Header("Game Rules")]
+    public int asteroidsToWin = 20;
+    public int maxEarthDamage = 100;
+
+    [Header("Damage Settings")]
+    public float minDamagePerHit = 5f;
+    public float maxDamagePerHit = 15f;
+
+    [Header("Current Statistics")]
+    public int asteroidsDestroyed = 0;
+    public float currentEarthDamage = 0f;
 
     void Awake()
     {
@@ -24,43 +32,61 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
-       UpdateVisuals();
-
+        UpdateVisuals();
     }
 
     public void AddDestroyedPoint()
     {
+        // Only count if the game is actually playing
+        if (sceneManager != null && !sceneManager.gamePlaying) return;
+
         asteroidsDestroyed++;
         UpdateVisuals();
-        Debug.Log("Asteroids Destroyed: " + asteroidsDestroyed);
+
+        // Check for Win Condition
+        if (asteroidsDestroyed >= asteroidsToWin)
+        {
+            sceneManager.WinGame();
+        }
     }
 
     public void AddEarthHit()
     {
-        earthHits++;
+        if (sceneManager != null && !sceneManager.gamePlaying) return;
+
+        // Calculate random damage based on public min/max
+        float randomDamage = Random.Range(minDamagePerHit, maxDamagePerHit);
+        currentEarthDamage += randomDamage;
+
         UpdateVisuals();
-        Debug.Log("Earth Hits: " + earthHits);
+
+        // Check for Fail Condition
+        if (currentEarthDamage >= maxEarthDamage)
+        {
+            currentEarthDamage = maxEarthDamage; // Clamp to 100 for UI
+            UpdateVisuals();
+            sceneManager.FailGame();
+        }
     }
 
     private void UpdateVisuals()
     {
         if (destroyedCountText != null)
         {
-            destroyedCountText.text = "Asteroids Destroyed: " + asteroidsDestroyed;
+            destroyedCountText.text = $"Asteroids Destroyed: {asteroidsDestroyed}/{asteroidsToWin}";
         }
 
         if (earthHitsCountText != null)
         {
-            // Keeping your percentage logic
-            earthHitsCountText.text = "Earth Damage: " + (earthHits * 10) + "%";
+            // Display as whole number for cleaner UI
+            earthHitsCountText.text = $"Earth Damage: {Mathf.FloorToInt(currentEarthDamage)}%";
         }
     }
 
     public void ResetVisuals()
     {
         asteroidsDestroyed = 0;
-        destroyedCountText.text = "Asteroids Destroyed: " + asteroidsDestroyed;
-        earthHits = 0;  
-        earthHitsCountText.text = "Earth Damage: " + earthHits + "%";
+        currentEarthDamage = 0f;
+        UpdateVisuals();
     }
 }
