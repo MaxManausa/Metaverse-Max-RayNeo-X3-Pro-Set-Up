@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AsteroidManager : MonoBehaviour
@@ -18,8 +16,6 @@ public class AsteroidManager : MonoBehaviour
     private Vector3 _randomRotationAxis;
     private float _actualRotationSpeed;
     private bool _isDead = false;
-
-    // Cache the transform for minor performance boost in Update
     private Transform _myTransform;
 
     void Awake()
@@ -29,7 +25,7 @@ public class AsteroidManager : MonoBehaviour
 
     void Start()
     {
-        _randomRotationAxis = Random.onUnitSphere; // Pro way to get a random 3D direction
+        _randomRotationAxis = Random.onUnitSphere;
         _actualRotationSpeed = Random.Range(rotationSpeedMin, rotationSpeedMax);
 
         if (earthTarget == null)
@@ -43,7 +39,6 @@ public class AsteroidManager : MonoBehaviour
     {
         if (_isDead || earthTarget == null) return;
 
-        // Use cached transform and MoveTowards for more consistent flight
         Vector3 direction = (earthTarget.position - _myTransform.position).normalized;
         _myTransform.position += direction * speed * Time.deltaTime;
 
@@ -54,12 +49,16 @@ public class AsteroidManager : MonoBehaviour
     {
         if (!_isDead && other.CompareTag("Earth"))
         {
-            if (ScoreManager.Instance != null) ScoreManager.Instance.AddEarthHit();
+            // Choice A: Calling with 0. ScoreManager handles random damage.
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.AddEarthHit(0);
+            }
             ExecuteExplosion(false);
         }
     }
 
-    public void ExplodeAsteroid() => HitByLaser(); // Clean C# expression body
+    public void ExplodeAsteroid() => HitByLaser();
 
     public void HitByLaser()
     {
@@ -87,8 +86,6 @@ public class AsteroidManager : MonoBehaviour
 
     private void TriggerLaserBeam()
     {
-        // Efficiency: FindObjectOfType is slow. In a bigger game, 
-        // you'd reference the LaserEffect via a Singleton like the ScoreManager.
         GameObject muzzle = GameObject.FindWithTag("LaserBlaster");
         LaserEffect laserScript = FindObjectOfType<LaserEffect>();
 

@@ -2,19 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/*
- * ******************************************************************************************
- * HUGE NOTE: THIS IS A JOKE SCRIPT THAT WILL FULL FUCK UP THE VIEW OF THE EARTH 
- * AND COULD MAYBE BE USED AS PSYCHOLOGICAL WARFARE FROM ALIENS.
- * ******************************************************************************************
- */
-
 public class SEDSceneManager : MonoBehaviour
 {
     [Header("Managers")]
     [SerializeField] private ScoreManager scoreManager;
     [SerializeField] private ResetHeadTrack resetHeadTrack;
     [SerializeField] private AsteroidSpawner asteroidSpawner;
+    [SerializeField] private SatelliteOrbitController satelliteController;
 
     [Header("UI Screens")]
     [SerializeField] private GameObject HomeScreen;
@@ -27,15 +21,16 @@ public class SEDSceneManager : MonoBehaviour
     [Header("Tools")]
     [SerializeField] private GameObject laserPointer;
 
-    private GameObject[] allScreens;
+    private GameObject[] _allScreens;
 
-    [HideInInspector] public bool gamePlaying = false;
-    [HideInInspector] public bool gamePaused = false;
+    [HideInInspector] public bool gamePlaying { get; private set; }
+    [HideInInspector] public bool gamePaused { get; private set; }
+    [HideInInspector] public bool gameOver { get; private set; }
+    [HideInInspector] public bool wonLevel { get; private set; }
 
     void Awake()
     {
-        // Cache all screens into an array for high-speed UI switching
-        allScreens = new GameObject[] { HomeScreen, GameUIScreen, PauseScreen, FailScreen, WonScreen };
+        _allScreens = new GameObject[] { HomeScreen, GameUIScreen, PauseScreen, FailScreen, WonScreen };
     }
 
     void Start()
@@ -46,18 +41,35 @@ public class SEDSceneManager : MonoBehaviour
 
     public void StartGame()
     {
-        ToggleUI(GameUIScreen); // Automatically hides all others including Fail/Won
+        InitializeLevel();
+        scoreManager.ResetVisuals();
+        if (satelliteController != null) satelliteController.SetZPosition(1000f);
+    }
 
+    public void NextLevel()
+    {
+        InitializeLevel();
+        scoreManager.LevelUp();
+    }
+
+    private void InitializeLevel()
+    {
+        UpdateStates(playing: true, paused: false, ended: false);
+        wonLevel = false;
+
+        ToggleUI(GameUIScreen);
         Game3DOFScene.SetActive(true);
         resetHeadTrack.OnReset();
-
-        gamePlaying = true;
-        gamePaused = false;
         laserPointer.SetActive(true);
 
         ClearAllUAPs();
         asteroidSpawner.StartSpawning();
-        scoreManager.ResetVisuals();
+
+        if (satelliteController != null)
+        {
+            satelliteController.SetZPosition(1000f);
+            satelliteController.RestartOrbit();
+        }
 
         Time.timeScale = 1;
     }
@@ -66,12 +78,13 @@ public class SEDSceneManager : MonoBehaviour
     {
         if (!gamePlaying || gamePaused) return;
 
-        gamePaused = true;
-        gamePlaying = false;
+        UpdateStates(playing: false, paused: true, ended: false);
 
+        // MANUALLY OVERRIDE TOGGLE: Keep Game UI on, turn Pause Screen on
         ToggleUI(PauseScreen);
-        laserPointer.SetActive(false);
+        GameUIScreen.SetActive(true); // <--- Keep telemetry visible
 
+        laserPointer.SetActive(true); // Usually you need the laser to click "Resume"
         asteroidSpawner.StopSpawning();
         Time.timeScale = 0;
     }
@@ -80,38 +93,28 @@ public class SEDSceneManager : MonoBehaviour
     {
         if (!gamePaused) return;
 
-        gamePaused = false;
-        gamePlaying = true;
+        UpdateStates(playing: true, paused: false, ended: false);
 
-        ToggleUI(GameUIScreen);
+        ToggleUI(GameUIScreen); // This will hide the Pause screen
+
         laserPointer.SetActive(true);
-
         asteroidSpawner.StartSpawning();
         Time.timeScale = 1;
     }
 
-    public void FailGame()
+    public void FailGame() => HandleGameOver(FailScreen, false);
+    public void WinGame() => HandleGameOver(WonScreen, true);
+
+    private void HandleGameOver(GameObject targetScreen, bool isWin)
     {
+        UpdateStates(playing: false, paused: false, ended: true);
+        wonLevel = isWin;
+
         Game3DOFScene.SetActive(false);
         ClearAllUAPs();
-        SetGameOverState(FailScreen);
-    }
-
-    public void WinGame()
-    {
-        Game3DOFScene.SetActive(false);
-        ClearAllUAPs(); // Specific requirement for Win
-        SetGameOverState(WonScreen);
-    }
-
-    private void SetGameOverState(GameObject targetScreen)
-    {
-        gamePlaying = false;
-        gamePaused = false;
-
         ToggleUI(targetScreen);
-        laserPointer.SetActive(true);
 
+        laserPointer.SetActive(true);
         asteroidSpawner.StopSpawning();
         Time.timeScale = 0;
     }
@@ -119,27 +122,32 @@ public class SEDSceneManager : MonoBehaviour
     public void GoHome()
     {
         Time.timeScale = 1;
+        UpdateStates(playing: false, paused: false, ended: false);
+        wonLevel = false;
 
         ToggleUI(HomeScreen);
         Game3DOFScene.SetActive(false);
-
-        gamePaused = false;
-        gamePlaying = false;
         laserPointer.SetActive(false);
-
         asteroidSpawner.StopSpawning();
         ClearAllUAPs();
+
+        if (scoreManager != null) scoreManager.StartOver();
+        if (satelliteController != null) satelliteController.SetZPosition(1000f);
     }
 
-    /// <summary>
-    /// Optimized UI switcher: Disables all screens and enables only the target.
-    /// </summary>
+    private void UpdateStates(bool playing, bool paused, bool ended)
+    {
+        gamePlaying = playing;
+        gamePaused = paused;
+        gameOver = ended;
+    }
+
     private void ToggleUI(GameObject activeScreen)
     {
-        foreach (GameObject screen in allScreens)
+        for (int i = 0; i < _allScreens.Length; i++)
         {
-            if (screen != null)
-                screen.SetActive(screen == activeScreen);
+            if (_allScreens[i] != null)
+                _allScreens[i].SetActive(_allScreens[i] == activeScreen);
         }
     }
 
@@ -148,7 +156,7 @@ public class SEDSceneManager : MonoBehaviour
         GameObject[] uaps = GameObject.FindGameObjectsWithTag("UAP");
         for (int i = 0; i < uaps.Length; i++)
         {
-            Destroy(uaps[i]);
+            if (uaps[i] != null) Destroy(uaps[i]);
         }
     }
 }

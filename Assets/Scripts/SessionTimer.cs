@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using System;
@@ -7,19 +5,37 @@ using System;
 public class SessionTimer : MonoBehaviour
 {
     private TextMeshProUGUI timerText;
+    private float timeElapsed;
 
     void Start()
     {
         timerText = GetComponent<TextMeshProUGUI>();
     }
 
+    // This triggers whenever the object this script is attached to becomes active
+    // Or, if this script is on a manager, you can call ResetTimer() from your Home button
+    void OnEnable()
+    {
+        ResetTimer();
+    }
+
+    public void ResetTimer()
+    {
+        timeElapsed = 0f;
+    }
+
     void Update()
     {
-        // Time.time is the time since the application started
-        TimeSpan t = TimeSpan.FromSeconds(Time.time);
+        if (timerText == null) return;
 
-        // Format the time as Minutes:Seconds
-        timerText.text = string.Format("Session Time: {0:D2}m:{1:D2}s",
+        // Increase our custom timer by the time passed since the last frame
+        timeElapsed += Time.deltaTime;
+
+        TimeSpan t = TimeSpan.FromSeconds(timeElapsed);
+
+        // Format: MET Hours:Minutes:Seconds
+        timerText.text = string.Format("{0:D2}:{1:D2}:{2:D2}",
+            (int)t.TotalHours,
             t.Minutes,
             t.Seconds);
     }

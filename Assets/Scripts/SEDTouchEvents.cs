@@ -6,97 +6,88 @@ public class SEDTouchEvents : MonoBehaviour
 {
     [SerializeField] private SEDSceneManager sceneManager;
     [SerializeField] private LaserEffect laserColor;
- 
-    // Start is called before the first frame update
+
     void Start()
     {
-        SimpleTouchForLite.Instance.OnSwipeUp.AddListener(OnSwipeUp);
-        SimpleTouchForLite.Instance.OnSwipeDown.AddListener(OnSwipeDown);
-        SimpleTouchForLite.Instance.OnSwipeLeft.AddListener(OnSwipeLeft);
-        SimpleTouchForLite.Instance.OnSwipeRight.AddListener(OnSwipeRight);
-
-        SimpleTouchForLite.Instance.OnSimpleTap.AddListener(OnSimpleTap);
-        SimpleTouchForLite.Instance.OnTripleTap.AddListener(OnTripleTap);
-        SimpleTouchForLite.Instance.OnLongPress.AddListener(OnLongPress);
+        // Subscribe to RayNeo touch events
+        var touch = SimpleTouchForLite.Instance;
+        touch.OnSwipeUp.AddListener(OnSwipeUp);
+        touch.OnSwipeDown.AddListener(OnSwipeDown);
+        touch.OnSwipeLeft.AddListener(OnSwipeLeft);
+        touch.OnSwipeRight.AddListener(OnSwipeRight);
+        touch.OnSimpleTap.AddListener(OnSimpleTap);
+        touch.OnTripleTap.AddListener(OnTripleTap);
+        touch.OnLongPress.AddListener(OnLongPress);
     }
-
-
 
     private void OnDestroy()
     {
-        SimpleTouchForLite.Instance.OnSwipeUp.RemoveListener(OnSwipeUp);
-        SimpleTouchForLite.Instance.OnSwipeDown.RemoveListener(OnSwipeDown);
-        SimpleTouchForLite.Instance.OnSwipeLeft.RemoveListener(OnSwipeLeft);
-        SimpleTouchForLite.Instance.OnSwipeRight.RemoveListener(OnSwipeRight);
+        // Unsubscribe to prevent memory leaks or null reference errors
+        if (SimpleTouchForLite.Instance == null) return;
 
-        SimpleTouchForLite.Instance.OnSimpleTap.RemoveListener(OnSimpleTap);
-        SimpleTouchForLite.Instance.OnTripleTap.RemoveListener(OnTripleTap);
-        SimpleTouchForLite.Instance.OnLongPress.RemoveListener(OnLongPress);
+        var touch = SimpleTouchForLite.Instance;
+        touch.OnSwipeUp.RemoveListener(OnSwipeUp);
+        touch.OnSwipeDown.RemoveListener(OnSwipeDown);
+        touch.OnSwipeLeft.RemoveListener(OnSwipeLeft);
+        touch.OnSwipeRight.RemoveListener(OnSwipeRight);
+        touch.OnSimpleTap.RemoveListener(OnSimpleTap);
+        touch.OnTripleTap.RemoveListener(OnTripleTap);
+        touch.OnLongPress.RemoveListener(OnLongPress);
     }
 
-
-    /// <summary>
-    /// Handles swiping right, moving to the next item in the list.
-    /// </summary>
-    private void OnSwipeRight(Vector2 pos)
-    {
-        Debug.Log("Moved Right.");
-        laserColor.NextColor();
-    }
-
-    /// <summary>
-    /// Handles swiping left, moving to the previous item in the list.
-    /// </summary>
-    private void OnSwipeLeft(Vector2 pos)
-    {
-        Debug.Log("Moved Left.");
-        laserColor.PreviousColor();
-    }
-
-    private void OnSwipeDown(Vector2 pos)
-    {
-        Debug.Log("Swiped Down");
-    }
-
-    private void OnSwipeUp(Vector2 pos)
-    {
-        Debug.Log("Swiped Up");
-    }
+    private void OnSwipeRight(Vector2 pos) => laserColor.NextColor();
+    private void OnSwipeLeft(Vector2 pos) => laserColor.PreviousColor();
+    private void OnSwipeDown(Vector2 pos) { /* Logic if needed */ }
+    private void OnSwipeUp(Vector2 pos) { /* Logic if needed */ }
 
     private void OnSimpleTap()
     {
-        Debug.Log("Tapped Once");
-        if (sceneManager.gamePlaying == true)
+        // 1. If currently playing, tap to Pause
+        if (sceneManager.gamePlaying)
         {
             sceneManager.PauseGame();
             return;
         }
-        else if (sceneManager.gamePaused == true)
+
+        // 2. If currently paused, tap to Continue
+        if (sceneManager.gamePaused)
         {
             sceneManager.ContinueGame();
             return;
         }
-        else if (sceneManager.gamePaused == false && sceneManager.gamePlaying == false)
-        {
-            sceneManager.StartGame();
-        }
-    }
 
+        // 3. Handle Game Over State (Won vs Failed)
+        if (sceneManager.gameOver)
+        {
+            if (sceneManager.wonLevel)
+            {
+                // Won Screen -> Go to next level
+                sceneManager.NextLevel();
+            }
+            else
+            {
+                // Fail Screen -> Go back to Home Screen
+                sceneManager.GoHome();
+            }
+            return;
+        }
+
+        // 4. Fallback: If at Home, tap to Start
+        sceneManager.StartGame();
+    }
 
     private void OnTripleTap()
     {
-        if (sceneManager.gamePlaying == false && sceneManager.gamePaused == false)
+        // If we are at the Home Screen
+        if (!sceneManager.gamePlaying && !sceneManager.gamePaused)
         {
             Application.Quit();
             return;
         }
 
+        // If in game or paused, go back to main menu
         sceneManager.GoHome();
-        Debug.Log("Triple Tapped");
     }
 
-    private void OnLongPress()
-    {
-        Debug.Log("Long Pressed");
-    }
+    private void OnLongPress() { /* Logic if needed */ }
 }
