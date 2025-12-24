@@ -7,10 +7,21 @@ public class RealTimeClock : MonoBehaviour
 {
     private TextMeshProUGUI clockText;
 
-    void Start()
+    void Awake()
     {
         clockText = GetComponent<TextMeshProUGUI>();
+    }
+
+    void OnEnable()
+    {
+        // Start the routine whenever the UI becomes active
         StartCoroutine(UpdateTimeRoutine());
+    }
+
+    void OnDisable()
+    {
+        // Stop the routine when inactive to save resources
+        StopAllCoroutines();
     }
 
     IEnumerator UpdateTimeRoutine()
@@ -24,10 +35,14 @@ public class RealTimeClock : MonoBehaviour
             // .HH:mm: Period separator and 24-hour time
             string timestamp = now.ToString("ddMMMyy.HH:mm").ToUpper();
 
-            clockText.text = timestamp;
+            if (clockText != null)
+            {
+                clockText.text = timestamp;
+            }
 
-            // Wait for 1 second to stay precise to the minute
-            yield return new WaitForSeconds(1.0f);
+            // FIXED: Use WaitForSecondsRealtime so the clock doesn't freeze 
+            // when Time.timeScale is 0 (Paused/Game Over).
+            yield return new WaitForSecondsRealtime(1.0f);
         }
     }
 }

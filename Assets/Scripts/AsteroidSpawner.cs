@@ -37,7 +37,7 @@ public class AsteroidSpawner : MonoBehaviour
     private IEnumerator SpawnLoop()
     {
         // Initial wait before first spawn
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(5f);
 
         while (true)
         {

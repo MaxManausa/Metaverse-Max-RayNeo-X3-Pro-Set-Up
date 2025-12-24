@@ -6,6 +6,10 @@ using TMPro;
 public class FPSCounter : MonoBehaviour
 {
     private TextMeshProUGUI fpsText;
+
+    [Header("UI Settings")]
+    [SerializeField] private GameObject connectionText; // Drag your red warning text here in the Inspector
+
     public float updateInterval = 0.5f;
     private float accum = 0;
     private int frames = 0;
@@ -13,9 +17,12 @@ public class FPSCounter : MonoBehaviour
 
     void Start()
     {
-        // Ensure you attach this script to the TextMeshPro UI object
         fpsText = GetComponent<TextMeshProUGUI>();
         timeleft = updateInterval;
+
+        // Ensure connection text starts in the correct state
+        if (connectionText != null)
+            connectionText.SetActive(false);
     }
 
     void Update()
@@ -24,17 +31,53 @@ public class FPSCounter : MonoBehaviour
         accum += Time.timeScale / Time.deltaTime;
         ++frames;
 
-        // Interval ended - update GUI text
         if (timeleft <= 0.0)
         {
             float fps = accum / frames;
-            // Use color coding for readability: Red for poor performance, Green for good
+
+            // Apply color coding
             string color = (fps < 30) ? "<color=red>" : (fps < 50 ? "<color=yellow>" : "<color=green>");
             fpsText.text = color + Mathf.RoundToInt(fps) + " FPS</color>";
 
+            // Logic for Low Mode and Connection Text
+            HandlePerformanceMode(fps);
+
+            // Reset counters
             timeleft = updateInterval;
             accum = 0.0F;
             frames = 0;
         }
     }
+
+    private void HandlePerformanceMode(float fps)
+    {
+        if (fps < 30)
+        {
+            LowMode();
+        }
+        else
+        {
+            NormalMode();   
+        }
+    }
+
+    public void LowMode()
+    {
+        // Switch to Low Mode
+        if (connectionText != null) connectionText.SetActive(true);
+
+        // Optional: Insert code here to reduce graphics quality, e.g.:
+        // QualitySettings.SetQualityLevel(0); 
+        Debug.Log("Performance: LOW MODE ACTIVE");
+    }
+
+    public void NormalMode()
+    {
+        // Switch to Normal Mode
+        if (connectionText != null) connectionText.SetActive(false);
+
+        // Optional: Restore quality settings, e.g.:
+        // QualitySettings.SetQualityLevel(2);
+    }
+
 }

@@ -5,35 +5,39 @@ using System;
 public class SessionTimer : MonoBehaviour
 {
     private TextMeshProUGUI timerText;
-    private float timeElapsed;
 
-    void Start()
+    // Static ensures this value stays the same across all instances 
+    // and survives the script being disabled/enabled.
+    private static DateTime startTime;
+    private static bool startTimeSet = false;
+
+    void Awake()
     {
         timerText = GetComponent<TextMeshProUGUI>();
+
+        // Set the start time only once per game session
+        if (!startTimeSet)
+        {
+            startTime = DateTime.Now;
+            startTimeSet = true;
+        }
     }
 
-    // This triggers whenever the object this script is attached to becomes active
-    // Or, if this script is on a manager, you can call ResetTimer() from your Home button
-    void OnEnable()
-    {
-        ResetTimer();
-    }
-
+    // This allows you to manually restart the session clock if needed
     public void ResetTimer()
     {
-        timeElapsed = 0f;
+        startTime = DateTime.Now;
     }
 
     void Update()
     {
         if (timerText == null) return;
 
-        // Increase our custom timer by the time passed since the last frame
-        timeElapsed += Time.deltaTime;
+        // Calculate time passed since the game started, 
+        // regardless of Time.timeScale or Active/Inactive status.
+        TimeSpan t = DateTime.Now - startTime;
 
-        TimeSpan t = TimeSpan.FromSeconds(timeElapsed);
-
-        // Format: MET Hours:Minutes:Seconds
+        // Format: Hours:Minutes:Seconds
         timerText.text = string.Format("{0:D2}:{1:D2}:{2:D2}",
             (int)t.TotalHours,
             t.Minutes,

@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class DeviceBatteryDisplay : MonoBehaviour
 {
@@ -7,32 +8,55 @@ public class DeviceBatteryDisplay : MonoBehaviour
 
     [Header("Tactical UI")]
     [SerializeField] private string label = "PWR:";
+    [SerializeField] private float updateInterval = 30f;
 
-    void Start()
+    void Awake()
     {
         batteryText = GetComponent<TextMeshProUGUI>();
-        // Update every 30 seconds to save resources
-        InvokeRepeating(nameof(UpdateBatteryInfo), 0f, 30f);
+    }
+
+    void OnEnable()
+    {
+        // Start the loop every time the object is activated
+        StartCoroutine(BatteryUpdateRoutine());
+    }
+
+    void OnDisable()
+    {
+        // Stop the loop when the object is deactivated to save battery
+        StopAllCoroutines();
+    }
+
+    private IEnumerator BatteryUpdateRoutine()
+    {
+        // Infinite loop that runs as long as the object is active
+        while (true)
+        {
+            UpdateBatteryInfo();
+
+            // WaitForSecondsRealtime is NOT affected by Time.timeScale = 0
+            yield return new WaitForSecondsRealtime(updateInterval);
+        }
     }
 
     void UpdateBatteryInfo()
     {
+        if (batteryText == null) return;
+
         float batteryLevel = SystemInfo.batteryLevel;
 
-        // SystemInfo.batteryLevel returns -1.0 if it cannot be determined
+        // SystemInfo.batteryLevel returns -1.0 if it cannot be determined (like in Editor)
         if (batteryLevel >= 0f)
         {
             int percentage = Mathf.RoundToInt(batteryLevel * 100);
 
-            // Format: PWR/LVL: 085%
-            // "D3" ensures it always shows 3 digits (e.g., 005% instead of 5%)
-            // This prevents the UI from shifting/jittering.
+            // Format ensures it stays fixed-width to prevent UI jitter
             batteryText.text = $"{label} {percentage.ToString("D2")}%";
         }
         else
         {
-            // Technical error code look
-            batteryText.text = $"{label} ERR_NA";
+            // Fallback for Editor testing or unsupported devices
+            batteryText.text = $"{label} --%";
         }
     }
 }

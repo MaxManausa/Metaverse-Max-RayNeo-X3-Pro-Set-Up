@@ -41,15 +41,15 @@ public class SEDSceneManager : MonoBehaviour
 
     public void StartGame()
     {
+        if (scoreManager != null) scoreManager.StartOver();
         InitializeLevel();
-        scoreManager.ResetVisuals();
         if (satelliteController != null) satelliteController.SetZPosition(1000f);
     }
 
     public void NextLevel()
     {
+        if (scoreManager != null) scoreManager.LevelUp();
         InitializeLevel();
-        scoreManager.LevelUp();
     }
 
     private void InitializeLevel()
@@ -72,34 +72,30 @@ public class SEDSceneManager : MonoBehaviour
         }
 
         Time.timeScale = 1;
+        if (scoreManager != null) scoreManager.SetPause(false);
     }
 
     public void PauseGame()
     {
         if (!gamePlaying || gamePaused) return;
-
         UpdateStates(playing: false, paused: true, ended: false);
-
-        // MANUALLY OVERRIDE TOGGLE: Keep Game UI on, turn Pause Screen on
         ToggleUI(PauseScreen);
-        GameUIScreen.SetActive(true); // <--- Keep telemetry visible
-
-        laserPointer.SetActive(true); // Usually you need the laser to click "Resume"
+        GameUIScreen.SetActive(true);
+        laserPointer.SetActive(true);
         asteroidSpawner.StopSpawning();
         Time.timeScale = 0;
+        if (scoreManager != null) scoreManager.SetPause(true);
     }
 
     public void ContinueGame()
     {
         if (!gamePaused) return;
-
         UpdateStates(playing: true, paused: false, ended: false);
-
-        ToggleUI(GameUIScreen); // This will hide the Pause screen
-
+        ToggleUI(GameUIScreen);
         laserPointer.SetActive(true);
         asteroidSpawner.StartSpawning();
         Time.timeScale = 1;
+        if (scoreManager != null) scoreManager.SetPause(false);
     }
 
     public void FailGame() => HandleGameOver(FailScreen, false);
@@ -109,6 +105,13 @@ public class SEDSceneManager : MonoBehaviour
     {
         UpdateStates(playing: false, paused: false, ended: true);
         wonLevel = isWin;
+
+        // --- NEW: TELL SCORE MANAGER TO FILL IN THE WIN/LOSS UI ---
+        if (scoreManager != null)
+        {
+            scoreManager.SetPause(true);
+            scoreManager.UpdateEndScreens(); // This populates the text
+        }
 
         Game3DOFScene.SetActive(false);
         ClearAllUAPs();
@@ -124,15 +127,13 @@ public class SEDSceneManager : MonoBehaviour
         Time.timeScale = 1;
         UpdateStates(playing: false, paused: false, ended: false);
         wonLevel = false;
-
         ToggleUI(HomeScreen);
         Game3DOFScene.SetActive(false);
         laserPointer.SetActive(false);
         asteroidSpawner.StopSpawning();
         ClearAllUAPs();
-
-        if (scoreManager != null) scoreManager.StartOver();
         if (satelliteController != null) satelliteController.SetZPosition(1000f);
+        if (scoreManager != null) scoreManager.SetPause(true);
     }
 
     private void UpdateStates(bool playing, bool paused, bool ended)
