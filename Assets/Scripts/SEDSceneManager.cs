@@ -41,14 +41,21 @@ public class SEDSceneManager : MonoBehaviour
 
     public void StartGame()
     {
+        // 1. Reset Career Stats and start Level 1 in LevelManager
         if (scoreManager != null) scoreManager.StartOver();
+
+        // 2. Setup the visual and physics state
         InitializeLevel();
+
         if (satelliteController != null) satelliteController.SetZPosition(1000f);
     }
 
     public void NextLevel()
     {
+        // 1. Tell ScoreManager to increment level, which calls LevelManager.GoToNextLevel()
         if (scoreManager != null) scoreManager.LevelUp();
+
+        // 2. Refresh the level state
         InitializeLevel();
     }
 
@@ -59,11 +66,14 @@ public class SEDSceneManager : MonoBehaviour
 
         ToggleUI(GameUIScreen);
         Game3DOFScene.SetActive(true);
-        resetHeadTrack.OnReset();
+
+        if (resetHeadTrack != null) resetHeadTrack.OnReset();
         laserPointer.SetActive(true);
 
+        // Crucial: Clear scene before spawning new wave (clears previous level's leftover bolts/enemies)
         ClearAllUAPs();
-        asteroidSpawner.StartSpawning();
+
+        if (asteroidSpawner != null) asteroidSpawner.StartSpawning();
 
         if (satelliteController != null)
         {
@@ -82,7 +92,9 @@ public class SEDSceneManager : MonoBehaviour
         ToggleUI(PauseScreen);
         GameUIScreen.SetActive(true);
         laserPointer.SetActive(true);
-        asteroidSpawner.StopSpawning();
+
+        if (asteroidSpawner != null) asteroidSpawner.StopSpawning();
+
         Time.timeScale = 0;
         if (scoreManager != null) scoreManager.SetPause(true);
     }
@@ -93,7 +105,9 @@ public class SEDSceneManager : MonoBehaviour
         UpdateStates(playing: true, paused: false, ended: false);
         ToggleUI(GameUIScreen);
         laserPointer.SetActive(true);
-        asteroidSpawner.StartSpawning();
+
+        if (asteroidSpawner != null) asteroidSpawner.StartSpawning();
+
         Time.timeScale = 1;
         if (scoreManager != null) scoreManager.SetPause(false);
     }
@@ -106,19 +120,20 @@ public class SEDSceneManager : MonoBehaviour
         UpdateStates(playing: false, paused: false, ended: true);
         wonLevel = isWin;
 
-        // --- NEW: TELL SCORE MANAGER TO FILL IN THE WIN/LOSS UI ---
+        // Populate the Win/Loss UI text from the ScoreManager before showing screen
         if (scoreManager != null)
         {
             scoreManager.SetPause(true);
-            scoreManager.UpdateEndScreens(); // This populates the text
+            scoreManager.UpdateEndScreens(); // Now pushes Total Stats/Grades to both screens
         }
 
         Game3DOFScene.SetActive(false);
-        ClearAllUAPs();
+        ClearAllUAPs(); // Stop enemies and existing bolts from hitting objective while viewing stats
         ToggleUI(targetScreen);
 
         laserPointer.SetActive(true);
-        asteroidSpawner.StopSpawning();
+        if (asteroidSpawner != null) asteroidSpawner.StopSpawning();
+
         Time.timeScale = 0;
     }
 
@@ -130,8 +145,11 @@ public class SEDSceneManager : MonoBehaviour
         ToggleUI(HomeScreen);
         Game3DOFScene.SetActive(false);
         laserPointer.SetActive(false);
-        asteroidSpawner.StopSpawning();
+
+        if (asteroidSpawner != null) asteroidSpawner.StopSpawning();
+
         ClearAllUAPs();
+
         if (satelliteController != null) satelliteController.SetZPosition(1000f);
         if (scoreManager != null) scoreManager.SetPause(true);
     }
@@ -154,10 +172,25 @@ public class SEDSceneManager : MonoBehaviour
 
     public void ClearAllUAPs()
     {
+        // 1. Clear objects tagged UAP (Legacy/Aliens)
         GameObject[] uaps = GameObject.FindGameObjectsWithTag("UAP");
         for (int i = 0; i < uaps.Length; i++)
         {
             if (uaps[i] != null) Destroy(uaps[i]);
+        }
+
+        // 2. Clear all objects using the AsteroidManager script (Asteroids, Aliens, Warriors, Bosses)
+        AsteroidManager[] enemies = Object.FindObjectsByType<AsteroidManager>(FindObjectsSortMode.None);
+        foreach (AsteroidManager enemy in enemies)
+        {
+            if (enemy != null) Destroy(enemy.gameObject);
+        }
+
+        // 3. Clear all Boss Blaster Bolts so no stray bullets hit Earth during UI screens
+        BlasterBolt[] strayBolts = Object.FindObjectsByType<BlasterBolt>(FindObjectsSortMode.None);
+        foreach (BlasterBolt bolt in strayBolts)
+        {
+            if (bolt != null) Destroy(bolt.gameObject);
         }
     }
 }
