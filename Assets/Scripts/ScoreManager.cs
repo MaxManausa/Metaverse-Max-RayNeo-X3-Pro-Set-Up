@@ -71,6 +71,12 @@ public class ScoreManager : MonoBehaviour
         level = n;
         ResetLevelStats();
 
+        // THIS LINE CONNECTS THE TWO SCRIPTS
+        if (LevelMaterialController.Instance != null)
+        {
+            LevelMaterialController.Instance.SetLevel(n);
+        }
+
         if (LevelManager.Instance != null)
         {
             var config = LevelManager.Instance.currentLevel;
