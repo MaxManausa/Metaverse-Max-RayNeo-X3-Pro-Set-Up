@@ -36,7 +36,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI totalGradeText;
 
     [Header("Game Rules")]
-    public int level = 1;
+    public int level = 0; // FIX: Changed from 1 to 0 to prevent menu spawning
     public int targetsToWin = 0;
     public int maxEarthDamage = 100;
 
@@ -63,15 +63,11 @@ public class ScoreManager : MonoBehaviour
         UpdateTelemetryUI();
     }
 
-    /// <summary>
-    /// Loads the level data and calculates requirements based on LevelManager config.
-    /// </summary>
     public void LoadLevelData(int n)
     {
         level = n;
         ResetLevelStats();
 
-        // THIS LINE CONNECTS THE TWO SCRIPTS
         if (LevelMaterialController.Instance != null)
         {
             LevelMaterialController.Instance.SetLevel(n);
@@ -81,7 +77,7 @@ public class ScoreManager : MonoBehaviour
         {
             var config = LevelManager.Instance.currentLevel;
 
-            // SYNCHRONIZED CALCULATION: Summing all enemy types to define the win condition
+            // SYNCHRONIZED CALCULATION
             targetsToWin = config.asteroidCount + config.alienCount +
                            config.warriorAlienCount + config.bossAlienCount;
 
@@ -120,7 +116,6 @@ public class ScoreManager : MonoBehaviour
     {
         if (isEndOfLevel || isPaused) return;
 
-        // Uses specific damage values (1f for Warriors) or default random for Asteroids
         float finalDamage = (damageValue > 0) ? damageValue : Random.Range(10f, 15f);
         currentEarthDamage += finalDamage;
 
@@ -139,8 +134,6 @@ public class ScoreManager : MonoBehaviour
         isEndOfLevel = true;
 
         levelScoreHistory.Add(currentEarthDamage);
-
-        // Add this level's requirement to the career total for percentage calculation
         lifetimePossibleTargets += targetsToWin;
 
         UpdateEndScreens();
