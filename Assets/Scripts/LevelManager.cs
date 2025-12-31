@@ -1,6 +1,6 @@
-using UnityEngine;
-using TMPro;
 using System.Collections;
+using TMPro;
+using UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
@@ -17,16 +17,26 @@ public class LevelManager : MonoBehaviour
         public int alienCount;
         public int warriorAlienCount;
         public int bossAlienCount;
-        public string customMissionText;
+        public string missionClean;
+        public string goalClean;
+        public string tipClean;
     }
 
-    [Header("HUD Sync References")]
+    [Header("Popup HUD (These Go Inactive)")]
     [SerializeField] private TextMeshProUGUI levelTitleText;
-    [SerializeField] private TextMeshProUGUI missionText;
+    [SerializeField] private TextMeshProUGUI popupMissionText;
+    [SerializeField] private TextMeshProUGUI popupGoalText;
+    [SerializeField] private TextMeshProUGUI popupTipText;
     [SerializeField] private GameObject hudMarker;
+
+    [Header("Parallel Display (Always Active)")]
+    [SerializeField] private TextMeshProUGUI parallelMissionText;
+    [SerializeField] private TextMeshProUGUI parallelGoalText;
+    [SerializeField] private TextMeshProUGUI parallelTipText;
 
     [Header("Settings")]
     [SerializeField] private float missionDisplayDuration = 5f;
+    [SerializeField] private float tipExtraDuration = 2f;
 
     [Header("Environment Objects")]
     [SerializeField] private GameObject earthObject;
@@ -46,25 +56,35 @@ public class LevelManager : MonoBehaviour
 
     private void Start()
     {
-        // FIX: Removed Invoke("StartFirstLevel", 0.2f);
-        // This prevents the game from auto-starting Level 1 at the Home Menu.
         currentLevel.levelNumber = 0;
     }
 
     public void StartLevel(int level)
     {
-        switch (level)
+        // Check for Game Completion
+        if (level > 99)
         {
-            case 1: SetLevel(1, GameMode.Earth, 15, 0, 0, 0, "GOAL: PROTECT THE EARTH\nMISSION: Destroy 15 Asteroids"); break;
-            case 2: SetLevel(2, GameMode.Earth, 40, 1, 0, 0, "GOAL: PROTECT THE EARTH\nMISSION: Destroy 40 Asteroids"); break;
-            case 3: SetLevel(3, GameMode.Earth, 55, 5, 3, 0, "GOAL: PROTECT THE EARTH\nMISSION: Destroy 60 Asteroids"); break;
-            case 4: SetLevel(4, GameMode.TravelToEarth, 55, 15, 0, 0, "GOAL: RECOVER SATELLITE\nMISSION: Destroy 60 Asteroids"); break;
-            case 5: SetLevel(5, GameMode.Earth, 60, 15, 10, 3, "GOAL: PROTECT EARTH\nMISSION: Destroy 60 Asteroids"); break;
-            case 6: SetLevel(6, GameMode.TravelToMoon, 65, 20, 0, 0, "GOAL: TRAVEL TO MOON\nMISSION: Destroy 65 Asteroids"); break;
-            case 7: SetLevel(7, GameMode.Moon, 50, 15, 5, 0, "GOAL: PROTECT THE MOON\nMISSION: Destroy 60 Asteroids"); break;
-            case 8: SetLevel(8, GameMode.Moon, 55, 20, 15, 5, "GOAL: DEFEND THE MOON\nMISSION: Destroy 60 Asteroids\nMISSION: Hold back Alien Armada"); break;
-            case 9: SetLevel(9, GameMode.TravelToEarth, 65, 25, 0, 0, "GOAL: TRAVEL TO EARTH\nMISSION: Destroy 60 Asteroids"); break;
-            case 10: SetLevel(10, GameMode.Earth, 80, 30, 25, 8, "GOAL: DEFEND THE EARTH\nMISSION: Destroy 80 Asteroids\nMISSION: Hold back Alien Armada"); break;
+            Debug.Log("Level 99 Cleared. Closing Game.");
+            Application.Quit();
+            return;
+        }
+
+        // Logic Index maps levels 11, 21, 31... to Case 1
+        // (level - 1) % 10 + 1 ensures the result is always between 1 and 10
+        int logicIndex = (level - 1) % 10 + 1;
+
+        switch (logicIndex)
+        {
+            case 1: SetLevel(level, GameMode.Earth, 15, 0, 0, 0, "PROTECT THE EARTH", "Destroy 15 Asteroids", "Move head to hit targets"); break;
+            case 2: SetLevel(level, GameMode.Earth, 40, 1, 0, 0, "PROTECT THE EARTH", "Destroy 40 Asteroids", "Destroy all potential threats"); break;
+            case 3: SetLevel(level, GameMode.Earth, 55, 5, 3, 0, "PROTECT THE EARTH", "Destroy 60 Asteroids", "Combat UAPs require more focus"); break;
+            case 4: SetLevel(level, GameMode.TravelToEarth, 55, 15, 0, 0, "RECOVER UAP", "Destroy 60 Asteroids", "Protect the asset"); break;
+            case 5: SetLevel(level, GameMode.Earth, 60, 15, 10, 3, "PROTECT EARTH", "Destroy 60 Asteroids", "Beware long-range UAPs"); break;
+            case 6: SetLevel(6, GameMode.TravelToMoon, 65, 20, 0, 0, "TRAVEL TO MOON", "Destroy 65 Asteroids", "Be ready."); break;
+            case 7: SetLevel(level, GameMode.Moon, 50, 15, 5, 0, "PROTECT THE MOON", "Destroy 60 Asteroids", "Take out long-range UAPs ASAP"); break;
+            case 8: SetLevel(level, GameMode.Moon, 55, 20, 15, 5, "DEFEND THE MOON", "Destroy 60 Asteroids\nHold back Alien Armada", "Don't be overwhelmed."); break;
+            case 9: SetLevel(level, GameMode.TravelToMoon, 65, 25, 0, 0, "TRAVEL TO EARTH", "Destroy 60 Asteroids", "Almost home - Stay alert!"); break;
+            case 10: SetLevel(level, GameMode.Earth, 80, 30, 25, 8, "DEFEND THE EARTH", "Destroy 80 Asteroids\nHold back Alien Armada", "Defend Earth at all costs!"); break;
             default: Debug.LogWarning("Level not defined!"); return;
         }
 
@@ -74,11 +94,13 @@ public class LevelManager : MonoBehaviour
         StopAllCoroutines();
         StartCoroutine(MissionDisplayRoutine());
 
-        if (ScoreManager.Instance != null) ScoreManager.Instance.LoadLevelData(level);
+        var sm = FindFirstObjectByType<ScoreManager>();
+        if (sm != null) sm.LoadLevelData(level);
+
         TriggerSpawn();
     }
 
-    private void SetLevel(int lvl, GameMode mode, int ast, int al, int war, int boss, string missionMsg)
+    private void SetLevel(int lvl, GameMode mode, int ast, int al, int war, int boss, string mission, string goal, string tip)
     {
         currentLevel.levelNumber = lvl;
         currentLevel.mode = mode;
@@ -86,27 +108,43 @@ public class LevelManager : MonoBehaviour
         currentLevel.alienCount = al;
         currentLevel.warriorAlienCount = war;
         currentLevel.bossAlienCount = boss;
-        currentLevel.customMissionText = missionMsg;
+
+        currentLevel.missionClean = mission;
+        currentLevel.goalClean = goal;
+        currentLevel.tipClean = tip;
     }
 
     private void UpdateLevelUI(int n)
     {
         if (levelTitleText != null) levelTitleText.text = "Level " + n;
-        if (missionText != null) missionText.text = currentLevel.customMissionText;
+        if (popupMissionText != null) popupMissionText.text = "MISSION: " + currentLevel.missionClean;
+        if (popupGoalText != null) popupGoalText.text = "GOAL: " + currentLevel.goalClean;
+        if (popupTipText != null) popupTipText.text = "TIP: " + currentLevel.tipClean;
+
+        if (parallelMissionText != null) parallelMissionText.text = currentLevel.missionClean;
+        if (parallelGoalText != null) parallelGoalText.text = currentLevel.goalClean;
+        if (parallelTipText != null) parallelTipText.text = currentLevel.tipClean;
     }
 
     private IEnumerator MissionDisplayRoutine()
     {
-        ToggleMissionUI(true);
+        TogglePopupUI(true);
+        if (popupTipText != null) popupTipText.gameObject.SetActive(true);
+
         yield return new WaitForSeconds(missionDisplayDuration);
-        ToggleMissionUI(false);
+
+        TogglePopupUI(false);
+        yield return new WaitForSeconds(tipExtraDuration);
+
+        if (popupTipText != null) popupTipText.gameObject.SetActive(false);
     }
 
-    public void ToggleMissionUI(bool showMissionText)
+    public void TogglePopupUI(bool show)
     {
-        if (levelTitleText != null) levelTitleText.gameObject.SetActive(showMissionText);
-        if (missionText != null) missionText.gameObject.SetActive(showMissionText);
-        if (hudMarker != null) hudMarker.SetActive(!showMissionText);
+        if (levelTitleText != null) levelTitleText.gameObject.SetActive(show);
+        if (popupMissionText != null) popupMissionText.gameObject.SetActive(show);
+        if (popupGoalText != null) popupGoalText.gameObject.SetActive(show);
+        if (hudMarker != null) hudMarker.SetActive(!show);
     }
 
     private void UpdateEnvironment(GameMode mode)
@@ -135,12 +173,15 @@ public class LevelManager : MonoBehaviour
 
     public void TriggerSpawn()
     {
-        if (AsteroidSpawner.Instance != null) AsteroidSpawner.Instance.StartSpawning();
+        var spawner = FindFirstObjectByType<AsteroidSpawner>();
+        if (spawner != null) spawner.StartSpawning();
     }
 
     public void GoToNextLevel()
     {
         int nextLvl = currentLevel.levelNumber + 1;
-        if (nextLvl <= 10) StartLevel(nextLvl);
+
+        // Removed the "if <= 10" restriction to allow looping to level 99
+        StartLevel(nextLvl);
     }
 }

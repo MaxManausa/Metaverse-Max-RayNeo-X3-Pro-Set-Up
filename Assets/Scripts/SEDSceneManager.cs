@@ -17,6 +17,7 @@ public class SEDSceneManager : MonoBehaviour
     [SerializeField] private GameObject PauseScreen;
     [SerializeField] private GameObject FailScreen;
     [SerializeField] private GameObject WonScreen;
+    [SerializeField] private GameObject FullGameWonScreen; // NEW: Drag your "Game Beaten" UI here
 
     [Header("Tools")]
     [SerializeField] private GameObject laserPointer;
@@ -30,7 +31,8 @@ public class SEDSceneManager : MonoBehaviour
 
     void Awake()
     {
-        _allScreens = new GameObject[] { HomeScreen, GameUIScreen, PauseScreen, FailScreen, WonScreen };
+        // Added FullGameWonScreen to the toggle array
+        _allScreens = new GameObject[] { HomeScreen, GameUIScreen, PauseScreen, FailScreen, WonScreen, FullGameWonScreen };
     }
 
     void Start()
@@ -41,21 +43,28 @@ public class SEDSceneManager : MonoBehaviour
 
     public void StartGame()
     {
-        // 1. Reset Career Stats and start Level 1 in LevelManager
         if (scoreManager != null) scoreManager.StartOver();
-
-        // 2. Setup the visual and physics state
         InitializeLevel();
-
         if (satelliteController != null) satelliteController.SetZPosition(1000f);
     }
 
     public void NextLevel()
     {
-        // 1. Tell ScoreManager to increment level, which calls LevelManager.GoToNextLevel()
-        if (scoreManager != null) scoreManager.LevelUp();
+        int currentLvl = 1;
+        if (LevelManager.Instance != null)
+        {
+            currentLvl = LevelManager.Instance.currentLevel.levelNumber;
+        }
 
-        // 2. Refresh the level state
+        // Check if we just beat level 99
+        if (currentLvl >= 99)
+        {
+            Debug.Log("Mastery Reached. Closing Application.");
+            Application.Quit();
+            return;
+        }
+
+        if (scoreManager != null) scoreManager.LevelUp();
         InitializeLevel();
     }
 
@@ -70,7 +79,6 @@ public class SEDSceneManager : MonoBehaviour
         if (resetHeadTrack != null) resetHeadTrack.OnReset();
         laserPointer.SetActive(true);
 
-        // Crucial: Clear scene before spawning new wave
         ClearAllUAPs();
 
         if (asteroidSpawner != null) asteroidSpawner.StartSpawning();
@@ -92,9 +100,6 @@ public class SEDSceneManager : MonoBehaviour
         ToggleUI(PauseScreen);
         GameUIScreen.SetActive(true);
         laserPointer.SetActive(true);
-
-        if (asteroidSpawner != null) asteroidSpawner.StopSpawning();
-
         Time.timeScale = 0;
         if (scoreManager != null) scoreManager.SetPause(true);
     }
@@ -105,15 +110,30 @@ public class SEDSceneManager : MonoBehaviour
         UpdateStates(playing: true, paused: false, ended: false);
         ToggleUI(GameUIScreen);
         laserPointer.SetActive(true);
-
-        if (asteroidSpawner != null) asteroidSpawner.StartSpawning();
-
         Time.timeScale = 1;
         if (scoreManager != null) scoreManager.SetPause(false);
     }
 
     public void FailGame() => HandleGameOver(FailScreen, false);
-    public void WinGame() => HandleGameOver(WonScreen, true);
+
+    public void WinGame()
+    {
+        int currentLvl = 1;
+        if (LevelManager.Instance != null)
+        {
+            currentLvl = LevelManager.Instance.currentLevel.levelNumber;
+        }
+
+        // If level 10 is beaten, show the SPECIAL Won Screen
+        if (currentLvl == 10)
+        {
+            HandleGameOver(FullGameWonScreen, true);
+        }
+        else
+        {
+            HandleGameOver(WonScreen, true);
+        }
+    }
 
     private void HandleGameOver(GameObject targetScreen, bool isWin)
     {
@@ -145,18 +165,13 @@ public class SEDSceneManager : MonoBehaviour
         Game3DOFScene.SetActive(false);
         laserPointer.SetActive(false);
 
-        // --- FIX ADDED HERE ---
-        // Explicitly set the level back to 0 so the Spawner safety check triggers
         if (LevelManager.Instance != null)
         {
             LevelManager.Instance.currentLevel.levelNumber = 0;
         }
-        // -----------------------
 
         if (asteroidSpawner != null) asteroidSpawner.StopSpawning();
-
         ClearAllUAPs();
-
         if (satelliteController != null) satelliteController.SetZPosition(1000f);
         if (scoreManager != null) scoreManager.SetPause(true);
     }
@@ -179,21 +194,18 @@ public class SEDSceneManager : MonoBehaviour
 
     public void ClearAllUAPs()
     {
-        // 1. Clear objects tagged UAP
         GameObject[] uaps = GameObject.FindGameObjectsWithTag("UAP");
         for (int i = 0; i < uaps.Length; i++)
         {
             if (uaps[i] != null) Destroy(uaps[i]);
         }
 
-        // 2. Clear all objects using the AsteroidManager script
         AsteroidManager[] enemies = Object.FindObjectsByType<AsteroidManager>(FindObjectsSortMode.None);
         foreach (AsteroidManager enemy in enemies)
         {
             if (enemy != null) Destroy(enemy.gameObject);
         }
 
-        // 3. Clear all Boss Blaster Bolts
         BlasterBolt[] strayBolts = Object.FindObjectsByType<BlasterBolt>(FindObjectsSortMode.None);
         foreach (BlasterBolt bolt in strayBolts)
         {
