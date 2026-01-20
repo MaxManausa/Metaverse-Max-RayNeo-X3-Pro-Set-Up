@@ -1,4 +1,5 @@
 RayNeo X3 Pro MIT Reality Hack Sample Project
+
 Welcome to the official sample project repository for the RayNeo X3 Pro, specifically designed for developers at MIT Reality Hack 2026. This project serves as a comprehensive foundational template to help you jumpstart your development and explore the unique capabilities of the X3 Pro hardware and SDK.
 
 Developed by Max Manausa, this repository is open and available to all developers looking to push the boundaries of Augmented Reality through RayNeo X3 Pro AI & AR Glasses.
