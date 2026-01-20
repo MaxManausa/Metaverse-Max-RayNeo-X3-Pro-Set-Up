@@ -35,6 +35,7 @@ RayNeo SDK: The necessary SDK packages are included/linked within the project.
 Hardware: RayNeo X3 Pro, USBC - USBC cable, windows laptop that can run unity and ADB
 
 Installation
+
 Clone this repository:
 
 Bash
@@ -46,6 +47,7 @@ Follow the instructions from: https://leiniao-ibg.feishu.cn/wiki/IwTRwecN0ikZcjk
 Or you can follow these directions made by me that speed things up I think: https://docs.google.com/presentation/d/1Mo0I4mmjyizU5rbNn7AJm8B9EInUDz-W/edit?slide=id.p1#slide=id.p1
 
 💡 Usage at MIT Reality Hack
+
 This project is intended to be a "plug-and-play" resource. You are encouraged to:
 
 Fork this repo to use as a base for your hackathon submission.
@@ -54,9 +56,12 @@ Strip the sample logic to use the underlying XR configurations.
 
 Reference the scripts to understand how to call specific SDK functions like face tracking or gaze input.
 
+
 Here's a big hint: each sample scene has one script (sometimes 2) that show off the capability in that specific sample scene. You can duplicate that script and make it whatever you want to leverage that specific capability.
 
+
 🤝 Contribution & Support
+
 This project is made for the developer community. If you find bugs or have improvements during the hackathon, feel free to open an issue or submit a pull request.
 
 Created with ⚡ by Max Manausa for the RayNeo developer ecosystem.
