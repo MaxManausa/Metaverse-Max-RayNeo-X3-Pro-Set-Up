@@ -12,7 +12,7 @@ public class SlamDemoCtrl : MonoBehaviour
     void Start()
     {
         Algorithm.EnableSlamHeadTracker();
-        CreateCubes();
+        //CreateCubes();
 
         HeadTrackedPoseDriver.OnPostUpdate += OnPostUpdate;
     }
