@@ -5,9 +5,11 @@ Welcome to the official sample project repository for the RayNeo X3 Pro, specifi
 Created and organized by Max Manausa (Metaverse Max), this repository is intended to help the developer community quickly explore and build for the RayNeo X3 Pro.
 
 🚀 Overview
+
 This repository includes a fully built-out Unity project that demonstrates the core features of the RayNeo X3 Pro SDK. Whether you are building a utility app, a spatial game, or a collaborative tool, this sample provides the boilerplate code and scene setups needed to leverage advanced AR functionalities immediately.
 
 ✨ Key Features Demonstrated
+
 The sample project includes implementations of the following SDK capabilities:
 
 Dual Display Rendering: Optimize user experience with priority focus rendering across the X3 Pro's dual-display architecture.
@@ -23,7 +25,9 @@ Gaze Interaction: A hands-free interaction model allowing users to select and in
 And More: Explore additional SDK integrations including gesture controls and spatial audio setups.
 
 🛠 Getting Started
+
 Prerequisites
+
 Unity Version: 2022.3.36f1
 
 RayNeo SDK: The necessary SDK packages are included/linked within the project.
