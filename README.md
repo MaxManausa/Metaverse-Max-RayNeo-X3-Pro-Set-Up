@@ -46,7 +46,7 @@ Open the project in Unity.
 Follow the instructions from: https://leiniao-ibg.feishu.cn/wiki/IwTRwecN0ikZcjkHAhicN5lWn0g
 Or you can follow these directions made by me that speed things up I think: https://docs.google.com/presentation/d/1Mo0I4mmjyizU5rbNn7AJm8B9EInUDz-W/edit?slide=id.p1#slide=id.p1
 
-💡 Usage at MIT Reality Hack
+💡 Usage at MIT Reality Hack and for general development
 
 This project is intended to be a "plug-and-play" resource. You are encouraged to:
 
@@ -55,6 +55,7 @@ Fork this repo to use as a base for your hackathon submission.
 Strip the sample logic to use the underlying XR configurations.
 
 Reference the scripts to understand how to call specific SDK functions like face tracking or gaze input.
+
 
 
 Here's a big hint: each sample scene has one script (sometimes 2) that show off the capability in that specific sample scene. You can duplicate that script and make it whatever you want to leverage that specific capability.
