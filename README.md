@@ -1,3 +1,6 @@
+you can download the apk in main and adb install it to your RayNeo X3 Pro to try out this sample project
+
+
 RayNeo X3 Pro MIT Reality Hack Sample Project
 
 Welcome to the official sample project repository for the RayNeo X3 Pro, specifically designed for developers at MIT Reality Hack 2026. This project serves as a comprehensive foundational template to help you jumpstart your development and explore the unique capabilities of the X3 Pro hardware and SDK.
